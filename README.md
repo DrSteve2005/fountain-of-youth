@@ -77,14 +77,6 @@ node_modules/
 
 .env and any real secrets
 
-.grok/, AGENTS.md
-
-screenshots/, attachments/, artifacts/, *.zip
-
-public/__grok/
-
-Do not upload a zip of your workspace.
-
 📄 License
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL‑3.0).
 See LICENSE for details.
