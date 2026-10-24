@@ -69,30 +69,6 @@ Reconnect the NWC wallet once after the first deploy that encrypts with
 `DATABASE_URL` / `WALLET_WRAP_KEY`, so an old blob wrapped with the legacy
 salt is not left behind.
 
-## Before you push this to GitHub
-
-Delete or leave out:
-
-- `node_modules/`
-- `.env` and any real secrets
-- `.grok/`, `AGENTS.md` (builder internals)
-- `screenshots/`, `attachments/`, `artifacts/`, `*.zip`
-- `public/__grok/` (install chrome for the builder preview)
-
-Do not upload a zip of the whole workspace. Init git in a clean folder, add
-the source, push.
-
-```bash
-git init
-git add .
-git status   # read this. if you see .env or nwc, stop.
-git commit -m "Initial public source"
-```
-
-Create the repo [DrSteve2005/fountain-of-youth](https://github.com/DrSteve2005/fountain-of-youth) if it is still empty, then `git remote add origin https://github.com/DrSteve2005/fountain-of-youth.git` and `git push`.
-Set the repo to public when you are ready. Add `SECURITY.md` contact on the
-repo’s Security tab if you want.
-
 ## License
 
 
