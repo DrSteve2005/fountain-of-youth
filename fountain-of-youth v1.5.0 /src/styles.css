@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-bg: #0c0a08;
+  --color-surface: #161310;
+  --color-surface-2: #1e1a15;
+  --color-fg: #f4efe4;
+  --color-muted: #9a9080;
+  --color-subtle: #6e675c;
+  --color-gold: #d4af37;
+  --color-gold-bright: #f0d060;
+  --color-gold-deep: #8a6a12;
+  --color-ember: #e08a3c;
+  --color-line: rgb(244 239 228 / 0.1);
+  --color-line-strong: rgb(244 239 228 / 0.18);
+  --color-danger: #c45c4a;
+  --color-success: #7d9b6a;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-border: 0 0 0 1px rgb(244 239 228 / 0.08);
+  --shadow-border-hover: 0 0 0 1px rgb(244 239 228 / 0.14);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    color-scheme: dark;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(ellipse 90% 55% at 50% -8%, #1c160e 0%, transparent 58%),
+      linear-gradient(180deg, #0c0a08 0%, #0c0a08 100%);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-gold) 40%, transparent);
+    color: var(--color-fg);
+  }
+}
+
+@keyframes aureus-drip {
+  0% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 0.95;
+  }
+  78% {
+    opacity: 0.9;
+  }
+  100% {
+    /* 57% of well height: finial → lower basin, scales on mobile */
+    transform: translate(-50%, 57cqh) scale(0.72);
+    opacity: 0;
+  }
+}
+
+@keyframes aureus-ripple {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scaleX(1.08);
+    opacity: 0.55;
+  }
+}
+
+@keyframes aureus-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes aureus-pour-burst {
+  0% {
+    transform: translate(-50%, -2cqh) scale(0.6);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 58cqh) scale(0.7) rotate(18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes aureus-splash {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  8% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  84% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.donation-splash {
+  animation: aureus-splash 5.2s ease both;
+}
+
+@keyframes aureus-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes aureus-handle {
+  0% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(-78deg);
+  }
+  70% {
+    transform: rotate(-78deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes aureus-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.drip-coin {
+  animation: aureus-drip 1.8s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) infinite;
+  will-change: transform, opacity;
+}
+
+.drip-coin-fast {
+  animation-duration: 0.85s;
+}
+
+.well-ripple {
+  animation: aureus-ripple 3.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.live-dot {
+  animation: aureus-pulse 2.2s ease-in-out infinite;
+}
+
+.handle-pour {
+  transform-origin: 160px 58px;
+  animation: aureus-handle 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stagger-in > * {
+  animation: aureus-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-in > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-in > *:nth-child(2) {
+  animation-delay: 70ms;
+}
+.stagger-in > *:nth-child(3) {
+  animation-delay: 140ms;
+}
+.stagger-in > *:nth-child(4) {
+  animation-delay: 210ms;
+}
+.stagger-in > *:nth-child(5) {
+  animation-delay: 280ms;
+}
+
+.gold-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(240 208 96 / 0.35) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: aureus-shimmer 1.6s linear infinite;
+}
+
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drip-coin,
+  .well-ripple,
+  .live-dot,
+  .handle-pour,
+  .stagger-in > *,
+  .gold-shimmer {
+    animation: none !important;
+  }
+}
