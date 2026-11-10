@@ -1,4 +1,4 @@
-export const POW_DIFFICULTY = 18;
+export const POW_DIFFICULTY = 19;
 export const POW_TTL_MS = 120_000;
 
 export function powPayload(id: string, nonce: number): string {

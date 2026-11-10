@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { LangToggle } from "@/components/lang-toggle";
+import { useI18n } from "@/lib/i18n";
 
 export function LegalPage({
   kicker,
@@ -12,6 +14,7 @@ export function LegalPage({
   updated: string;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <div className="min-h-dvh">
       <header className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
@@ -23,12 +26,15 @@ export function LegalPage({
             Fountain of Youth
           </span>
         </Link>
-        <Link
-          to="/"
-          className="text-sm text-muted underline-offset-2 hover:text-gold hover:underline"
-        >
-          Back to the spring
-        </Link>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <LangToggle />
+          <Link
+            to="/"
+            className="hidden text-sm text-muted underline-offset-2 hover:text-gold hover:underline sm:inline"
+          >
+            {t("nav.back")}
+          </Link>
+        </div>
       </header>
 
       <main className="mx-auto max-w-2xl px-4 pb-20 pt-6 sm:px-6 sm:pt-10">
@@ -46,30 +52,36 @@ export function LegalPage({
 
       <footer className="mx-auto flex max-w-2xl flex-wrap gap-x-4 gap-y-2 px-4 pb-10 text-xs text-subtle sm:px-6">
         <Link to="/" className="hover:text-gold">
-          Home
+          {t("nav.home")}
         </Link>
         <Link to="/faq" className="hover:text-gold">
-          FAQ
+          {t("nav.faq")}
+        </Link>
+        <Link to="/know" className="hover:text-gold">
+          {t("nav.know")}
+        </Link>
+        <Link to="/embed" className="hover:text-gold">
+          {t("nav.embed")}
         </Link>
         <Link to="/changelog" className="hover:text-gold">
-          Changelog
+          {t("nav.changelog")}
         </Link>
         <Link to="/feedback" className="hover:text-gold">
-          Feedback
+          {t("nav.feedback")}
         </Link>
         <Link to="/privacy" className="hover:text-gold">
-          Privacy
+          {t("nav.privacy")}
         </Link>
         <Link to="/terms" className="hover:text-gold">
-          Terms
+          {t("nav.terms")}
         </Link>
         <a
-          href="https://github.com/DrSteve2005"
+          href="https://github.com/DrSteve2005/fountain-of-youth"
           target="_blank"
           rel="noreferrer"
           className="hover:text-gold"
         >
-          GitHub
+          {t("nav.github")}
         </a>
       </footer>
     </div>

@@ -12,9 +12,9 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <LegalPage
-      kicker="v1.3"
+      kicker="v1.5.1"
       title="Privacy"
-      updated="Effective 29 August 2026"
+      updated="Effective 13 October 2026"
     >
       <p>
         Fountain of Youth has no accounts and no login. We do not sell data. A
@@ -50,6 +50,11 @@ function PrivacyPage() {
           <li>
             A hash of your IP address — for rate limits, proof-of-work
             challenges, and bot resistance. We do not store the raw IP.
+          </li>
+          <li>
+            If the keeper refuses a Lightning address from filling, that
+            address is stored so the refusal holds. It is not shown on the
+            basin. Drinking is not affected.
           </li>
           <li>
             Paid pour amounts, timestamps, streak counts, animal tier, and
@@ -100,8 +105,8 @@ function PrivacyPage() {
 
       <LegalSection title="Third parties">
         <p>
-          Lightning payments leave this database. They go through the keeper’s
-          Alby Hub and the Lightning Network. Those hops have their own logs.
+          Lightning payments leave this database. The keeper pays them from an
+          LNbits wallet. LNbits and the Lightning Network keep their own logs.
         </p>
         <p>
           The site is hosted on a cloud app platform. If the keeper puts
@@ -145,7 +150,7 @@ function PrivacyPage() {
           >
             feedback
           </Link>{" "}
-          page. Do not send wallet seeds, NWC strings, or passwords.
+          page. Do not send wallet seeds, LNbits keys, or passwords.
         </p>
       </LegalSection>
 

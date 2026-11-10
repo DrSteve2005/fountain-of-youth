@@ -1,5 +1,6 @@
 import { Droplets, Waves } from "lucide-react";
-import { donorLabel, formatSats, type DonorEntry, type DonorTier } from "@/lib/faucet";
+import { formatSats, type DonorEntry, type DonorTier } from "@/lib/faucet";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 function FloodIcon({ className }: { className?: string }) {
@@ -31,26 +32,18 @@ export function Donorboard({
   donors,
   keeper = false,
   onHide,
+  bare = false,
 }: {
   donors: DonorEntry[];
   keeper?: boolean;
   onHide?: (mask: string) => void;
+  bare?: boolean;
 }) {
-  return (
-    <section className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)] sm:p-5">
-      <div>
-        <h2 className="font-display text-xl font-semibold tracking-tight text-fg">
-          The basin
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Who filled the spring. Listed. No extra drink, no better odds.
-        </p>
-      </div>
-
+  const { t, locale } = useI18n();
+  const list = (
+    <>
       {donors.length === 0 ? (
-        <p className="mt-6 text-sm text-subtle">
-          No fills yet. The first paid invoice is listed here.
-        </p>
+        <p className="mt-6 text-sm text-subtle">{t("basin.empty")}</p>
       ) : (
         <ol className="mt-4 divide-y divide-line">
           {donors.map((row, index) => (
@@ -76,12 +69,14 @@ export function Donorboard({
               <div className="min-w-0 flex-1">
                 <p className="truncate font-mono text-sm text-fg">{row.mask}</p>
                 <p className="text-xs text-subtle">
-                  {donorLabel(row.tier)}
-                  {row.fills ? ` · ${row.fills} fill${row.fills === 1 ? "" : "s"}` : ""}
+                  {t(`donor.${row.tier}`)}
+                  {row.fills
+                    ? ` · ${row.fills === 1 ? t("basin.fillOne") : t("basin.fills", { n: row.fills })}`
+                    : ""}
                 </p>
               </div>
               <p className="font-mono text-sm font-medium tabular-nums text-gold">
-                {formatSats(row.totalSats)}
+                {formatSats(row.totalSats, locale)}
               </p>
               {keeper && onHide ? (
                 <button
@@ -89,17 +84,26 @@ export function Donorboard({
                   onClick={() => onHide(row.mask)}
                   className="text-[11px] font-medium text-subtle underline-offset-2 hover:text-fg hover:underline"
                 >
-                  Hide
+                  {t("basin.hide")}
                 </button>
               ) : null}
             </li>
           ))}
         </ol>
       )}
-
-      <p className="mt-4 text-xs leading-normal text-subtle">
-        Drop under 1,000 · Stream 1,000–4,999 · Flood 5,000+. 100% to pours.
-      </p>
+      <p className="mt-4 text-xs leading-normal text-subtle">{t("basin.legend")}</p>
+    </>
+  );
+  if (bare) return list;
+  return (
+    <section className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)] sm:p-5">
+      <div>
+        <h2 className="font-display text-xl font-semibold tracking-tight text-fg">
+          {t("basin.title")}
+        </h2>
+        <p className="mt-1 text-sm text-muted">{t("basin.body")}</p>
+      </div>
+      {list}
     </section>
   );
 }

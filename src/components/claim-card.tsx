@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Crown, Flame, LoaderCircle, Medal, Zap } from "lucide-react";
-import { AnimalBadge } from "@/components/leaderboard";
+import { Clock, Flame, LoaderCircle, Shield, Zap } from "lucide-react";
+import { AnimalBadge, JackOLantern, Marks } from "@/components/leaderboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { lookupDrinker } from "@/lib/faucet-api";
@@ -11,9 +11,13 @@ import {
   boardLabel,
   classifyDestination,
   formatSats,
+  HALLOW_STREAK_DAYS,
   isClaimableLightning,
+  isHallowSeason,
   type ClaimOk,
 } from "@/lib/faucet";
+import { addressFieldInvalid } from "@/lib/copy";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type ClaimCardProps = {
@@ -43,6 +47,7 @@ export function ClaimCard({
   onCancelPow,
   onClaim,
 }: ClaimCardProps) {
+  const { t, errorText } = useI18n();
   const [value, setValue] = useState("");
   const [username, setUsername] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -101,7 +106,7 @@ export function ClaimCard({
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (disabled || pending || cooling || dry || sealed || maintenance) return;
+    if (disabled || pending || cooling || sealed || maintenance) return;
     try {
       const trimmed = username.trim();
       if (trimmed) localStorage.setItem(USERNAME_KEY, trimmed);
@@ -119,10 +124,10 @@ export function ClaimCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight text-fg">
-            Drink
+            {t("claim.title")}
           </h2>
           <p className="mt-1 text-sm leading-normal text-muted">
-            A random Lightning pour. Fuller spring, bigger sips. Streaks tilt the odds.
+            {t("claim.body")}
           </p>
         </div>
         <span
@@ -136,14 +141,14 @@ export function ClaimCard({
           )}
         >
           <Zap className="size-3.5" aria-hidden />
-          {kind === "onchain" ? "On-chain" : "Lightning"}
+          {kind === "onchain" ? t("claim.onchain") : t("claim.lightning")}
         </span>
       </div>
 
       <form onSubmit={submit} className="mt-4 space-y-3">
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted uppercase">
-            Lightning address
+            {t("claim.address")}
           </span>
           <Input
             value={value}
@@ -152,22 +157,22 @@ export function ClaimCard({
             autoComplete="off"
             spellCheck={false}
             inputMode="email"
-            aria-invalid={Boolean(error)}
+            aria-invalid={kind === "onchain" || addressFieldInvalid(error)}
           />
         </label>
         <label className="block">
           <span className="mb-1.5 flex items-baseline gap-1.5">
             <span className="text-xs font-medium tracking-wide text-muted uppercase">
-              Board name
+              {t("claim.boardName")}
             </span>
             <span className="text-xs font-normal tracking-normal text-subtle">
-              optional
+              {t("claim.optional")}
             </span>
           </span>
           <Input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="shown on the board"
+            placeholder={t("claim.boardPlaceholder")}
             autoComplete="nickname"
             spellCheck={false}
             maxLength={16}
@@ -187,58 +192,68 @@ export function ClaimCard({
         </div>
 
         {claimable && drinker?.found ? (
-          <p className="flex flex-wrap items-center gap-2 text-sm text-gold">
-            <Flame className="size-4" aria-hidden />
-            <span>
-              {drinker.streak > 0
-                ? `Day ${drinker.streak} streak · jackpot +${drinker.jackpotBoostPct.toFixed(1)}%`
-                : "Streak waiting · drink today to continue"}
-            </span>
-            <AnimalBadge tier={drinker.tier} compact />
-            {drinker.pour1000 ? (
-              <span className="inline-flex items-center gap-1 text-gold">
-                1000th
+          <div className="space-y-1.5">
+            <p className="flex items-start gap-2 text-sm text-gold">
+              <Flame className="mt-0.5 size-4 shrink-0" aria-hidden />
+              <span>
+                {drinker.streak > 0
+                  ? t("claim.streak", {
+                      n: drinker.streak,
+                      sip: drinker.payoutBoostPct.toFixed(0),
+                      boost: drinker.jackpotBoostPct.toFixed(1),
+                    })
+                  : t("claim.streakWaiting")}
               </span>
+            </p>
+            <p className="flex flex-wrap items-center gap-2">
+              <AnimalBadge tier={drinker.tier} compact />
+              <Marks
+                legacy={drinker.legacy}
+                pour500={drinker.pour500}
+                pour1000={drinker.pour1000}
+                hallow={drinker.hallow}
+              />
+              {isHallowSeason() &&
+              !drinker.hallow &&
+              drinker.hallowDays > 0 &&
+              drinker.hallowDays < HALLOW_STREAK_DAYS ? (
+                <span className="inline-flex items-center gap-1 text-xs text-gold">
+                  <JackOLantern className="size-3.5" />
+                  {t("hallow.progress", { n: drinker.hallowDays })}
+                </span>
+              ) : null}
+            </p>
+            {drinker.graceToken ? (
+              <p className="flex items-center gap-1.5 text-xs text-gold">
+                <Shield className="size-3.5" aria-hidden />
+                {t("claim.graceReady")}
+              </p>
             ) : null}
-            {drinker.legacy ? (
-              <span className="inline-flex items-center gap-1 text-gold">
-                <Crown className="size-3.5" aria-hidden />
-                Legacy
-              </span>
-            ) : null}
-            {drinker.pour500 ? (
-              <span className="inline-flex items-center gap-1 text-gold">
-                <Medal className="size-3.5" aria-hidden />
-              </span>
-            ) : null}
-          </p>
+          </div>
         ) : claimable && drinker && !drinker.found ? (
-          <p className="text-xs text-subtle">
-            First drink starts a streak.
-          </p>
+          <p className="text-xs text-subtle">{t("claim.first")}</p>
         ) : (
-          <p className="text-xs text-subtle">
-            Come back each UTC day. Miss a day and the streak resets.
-          </p>
+          <p className="text-xs text-subtle">{t("claim.hint")}</p>
         )}
 
         {kind === "onchain" && (
-          <p className="text-xs text-muted">
-            On-chain addresses cannot receive a real pour. Use a Lightning
-            address.
-          </p>
+          <p className="text-xs text-muted">{t("claim.onchainWarn")}</p>
         )}
+
+        {dry && !sealed && !maintenance ? (
+          <p className="text-xs text-gold">{t("claim.dryHold")}</p>
+        ) : null}
 
         {error && (
           <p className="text-sm text-danger" role="alert">
-            {error}
+            {errorText(error)}
           </p>
         )}
 
         {cooling && (
           <div className="flex items-center gap-2 text-sm text-muted">
             <Clock className="size-4 text-gold" aria-hidden />
-            <span className="tabular-nums">Recharge {seconds}s</span>
+            <span className="tabular-nums">{t("claim.recharge", { s: seconds })}</span>
             <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-surface-2">
               <span
                 className="absolute inset-y-0 left-0 bg-gold transition-[width] duration-150 ease-out"
@@ -252,12 +267,18 @@ export function ClaimCard({
           <div className="space-y-2 rounded-lg bg-surface-2 px-3 py-2.5">
             <div className="flex items-center justify-between gap-2 text-sm text-muted">
               <span className="flex items-center gap-2">
-                <LoaderCircle className="size-4 animate-spin text-gold" aria-hidden />
+                <LoaderCircle
+                  className={cn(
+                    "size-4 animate-spin",
+                    isHallowSeason() ? "text-ember" : "text-gold",
+                  )}
+                  aria-hidden
+                />
                 {powPhase === "challenge"
-                  ? "Requesting a puzzle…"
+                  ? t("claim.powChallenge")
                   : powPhase === "solving"
-                    ? "Proving you're not a bot…"
-                    : "Sending your pour…"}
+                    ? t("claim.powSolving")
+                    : t("claim.powSending")}
               </span>
               {powPhase === "solving" && (
                 <button
@@ -265,13 +286,16 @@ export function ClaimCard({
                   onClick={onCancelPow}
                   className="text-xs font-medium text-subtle underline-offset-2 hover:text-fg hover:underline"
                 >
-                  Cancel
+                  {t("claim.cancel")}
                 </button>
               )}
             </div>
             <span className="relative block h-1 overflow-hidden rounded-full bg-surface">
               <span
-                className="absolute inset-y-0 left-0 bg-gold transition-[width] duration-150 ease-out"
+                className={cn(
+                  "absolute inset-y-0 left-0 transition-[width] duration-150 ease-out",
+                  isHallowSeason() ? "bg-ember" : "bg-gold",
+                )}
                 style={{
                   width: `${Math.round(
                     (powPhase === "solving" ? powProgress : 1) * 100,
@@ -287,35 +311,31 @@ export function ClaimCard({
           size="lg"
           className="w-full font-medium"
           disabled={
-            disabled || pending || cooling || dry || sealed || maintenance || !claimable
+            disabled || pending || cooling || sealed || maintenance || !claimable
           }
         >
           {pending ? (
             <>
               <LoaderCircle className="size-4 animate-spin" aria-hidden />
               {powPhase === "solving"
-                ? "Solving puzzle"
+                ? t("claim.solving")
                 : powPhase === "submitting"
-                  ? "Paying over Lightning"
-                  : "Starting"}
+                  ? t("claim.paying")
+                  : t("claim.starting")}
             </>
           ) : maintenance ? (
-            "Spring is under maintenance"
+            t("claim.maintBtn")
           ) : sealed ? (
-            "Spring is sealed"
+            t("claim.sealedBtn")
           ) : dry ? (
-            "Spring is dry"
+            t("claim.dryBtn")
           ) : cooling ? (
-            `Wait ${seconds}s`
+            t("claim.wait", { s: seconds })
           ) : (
-            "Drink a random pour"
+            t("claim.submit")
           )}
         </Button>
-        <p className="text-xs leading-normal text-subtle">
-          Drinking briefly uses your device to solve a spam-blocking puzzle
-          first (~1–2s of CPU on most phones). Also enforces IP and address
-          limits. Sats are paid over Lightning, not promised on a ledger.
-        </p>
+        <p className="text-xs leading-normal text-subtle">{t("claim.powFoot")}</p>
       </form>
     </section>
   );
@@ -328,6 +348,7 @@ export function PourSuccess({
   pour: ClaimOk;
   onDismiss: () => void;
 }) {
+  const { t, locale } = useI18n();
   const who = boardLabel(pour.username, pour.mask);
   return (
     <div
@@ -343,22 +364,22 @@ export function PourSuccess({
       >
         <p className="text-xs font-medium tracking-[0.18em] text-gold uppercase">
           {pour.tier === "jackpot"
-            ? "Jackpot pour"
+            ? t("pour.jackpot")
             : pour.tier === "rare"
-              ? "Rare pour"
-              : "Paid"}
+              ? t("pour.rare")
+              : t("pour.paid")}
         </p>
         <h2
           id="pour-title"
           className="mt-2 font-display text-5xl leading-none font-semibold tracking-tight text-gold-bright sm:text-6xl"
         >
-          {pour.amount.toLocaleString("en-US")}
+          {pour.amount.toLocaleString(locale)}
           <span className="ml-2 font-sans text-lg font-medium text-muted">
             sats
           </span>
         </h2>
         <p className="mt-4 text-sm leading-normal text-muted">
-          Paid over Lightning to{" "}
+          {t("pour.to")}{" "}
           <span className={pour.username ? "font-display font-medium text-fg" : "font-mono text-fg"}>
             {who}
           </span>
@@ -367,51 +388,60 @@ export function PourSuccess({
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-2.5 py-1 text-xs font-medium text-gold">
             <Flame className="size-3.5" aria-hidden />
-            Day {pour.streak} streak
+            {t("pour.day", { n: pour.streak })}
           </span>
           <AnimalBadge tier={pour.animalTier} />
-          {pour.pour1000 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 text-xs font-medium text-bg">
-              1000th
-            </span>
-          ) : null}
-          {pour.legacy ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 text-xs font-medium text-bg">
-              <Crown className="size-3.5" aria-hidden />
-              Legacy
-              {pour.legacyRank ? ` #${pour.legacyRank}` : ""}
-            </span>
-          ) : null}
-          {pour.pour500 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 text-xs font-medium text-bg">
-              <Medal className="size-3.5" aria-hidden />
+          <Marks
+            legacy={pour.legacy}
+            legacyRank={pour.legacyRank}
+            pour500={pour.pour500}
+            pour1000={pour.pour1000}
+            hallow={pour.hallow}
+          />
+          {pour.payoutBoostPct > 0 ? (
+            <span className="text-xs text-subtle">
+              {t("pour.sipBoost", { sip: pour.payoutBoostPct.toFixed(0) })}
             </span>
           ) : null}
           <span className="text-xs text-subtle">
-            Jackpot +{pour.jackpotBoostPct.toFixed(1)}%
+            {t("pour.boost", { boost: pour.jackpotBoostPct.toFixed(1) })}
           </span>
         </div>
         <p className="mt-3 text-sm text-subtle">
-          {formatSats(pour.totalSats)} claimed · {formatSats(pour.balance)} remain
-          in the spring.
+          {t("pour.remain", {
+            claimed: formatSats(pour.totalSats, locale),
+            remain: formatSats(pour.balance, locale),
+          })}
         </p>
-        {pour.legacy ? (
-          <p className="mt-2 text-sm text-gold">
-            Among the first to drink. You earned a Legacy badge.
+        {pour.usedGrace ? (
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-gold">
+            <Shield className="size-3.5" aria-hidden />
+            {t("pour.graceUsed")}
           </p>
+        ) : null}
+        {pour.earnedGrace ? (
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-gold">
+            <Shield className="size-3.5" aria-hidden />
+            {t("pour.graceEarned")}
+          </p>
+        ) : null}
+        {pour.legacy ? (
+          <p className="mt-2 text-sm text-gold">{t("pour.legacyLine")}</p>
         ) : null}
         {pour.pour500 ? (
-          <p className="mt-2 text-sm text-gold">
-            You found it. That badge stays on the board.
-          </p>
+          <p className="mt-2 text-sm text-gold">{t("pour.foundIt")}</p>
         ) : null}
         {pour.pour1000 ? (
-          <p className="mt-2 text-sm text-gold">
-            You drank the 1,000th pour. That stays on the board.
+          <p className="mt-2 text-sm text-gold">{t("pour.thousand")}</p>
+        ) : null}
+        {pour.earnedHallow ? (
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-gold">
+            <JackOLantern className="size-4" />
+            {t("pour.hallow")}
           </p>
         ) : null}
         <Button className="mt-4 w-full" onClick={onDismiss}>
-          Close
+          {t("pour.close")}
         </Button>
       </div>
     </div>

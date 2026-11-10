@@ -5,12 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ClaimCard, PourSuccess } from "@/components/claim-card";
 import { DonationSplash } from "@/components/donation-splash";
-import { Donorboard } from "@/components/donorboard";
 import { FaucetWell } from "@/components/faucet-well";
 import { FillSheet } from "@/components/fill-sheet";
 import { FundCard } from "@/components/fund-card";
 import { KeeperGate } from "@/components/keeper-gate";
-import { Leaderboard } from "@/components/leaderboard";
+import { KeeperWatch } from "@/components/keeper-watch";
+import { LangToggle } from "@/components/lang-toggle";
+import { Leaderboard, JackOLantern } from "@/components/leaderboard";
 import { RecentDrips } from "@/components/recent-drips";
 import { StatsRow } from "@/components/stats-row";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,12 @@ import {
   createPublicTip,
   disconnectWallet,
   getFaucetState,
+  getKeeperWatch,
   getWalletStatus,
   hideBasinDonor,
+  listFillBlocks,
+  blockFillAddress,
+  unblockFillAddress,
   rotateKeeper,
   setMaintenance,
   verifyKeeper,
@@ -36,6 +41,10 @@ import {
   KEEPER_SESSION_KEY,
   formatSats,
   getOrCreateClaimToken,
+  hallowNightsLeft,
+  isHallowSeason,
+  refillMoment,
+  formatRefillWait,
   donorLore,
   type ClaimOk,
   type DepositInvoice,
@@ -43,6 +52,7 @@ import {
   type RecentFill,
 } from "@/lib/faucet";
 import { solvePow, powEstimatedAttempts, PowCancelled } from "@/lib/pow-client";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   loader: () => getFaucetState(),
@@ -57,7 +67,34 @@ function readKeeperSession(): string {
   }
 }
 
+function RefillCountdown() {
+  const { t } = useI18n();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const moment = refillMoment(new Date(now));
+  if (moment.phase === "gone") return null;
+  return (
+    <div className="mt-4">
+      <p className="text-xs font-medium tracking-[0.22em] text-gold uppercase">
+        {t("refill.kicker")}
+      </p>
+      {moment.phase === "wait" ? (
+        <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-fg tabular-nums">
+          {formatRefillWait(moment.ms)}
+        </p>
+      ) : null}
+      <p className="mt-1 text-sm text-muted">
+        {moment.phase === "today" ? t("refill.today") : t("refill.wait")}
+      </p>
+    </div>
+  );
+}
+
 function Home() {
+  const { t, locale } = useI18n();
   const initial = Route.useLoaderData();
   const queryClient = useQueryClient();
   const [now, setNow] = useState(0);
@@ -97,6 +134,14 @@ function Home() {
     queryKey: ["wallet-status", keeperPhrase],
     queryFn: () => getWalletStatus({ data: { keeperPhrase } }),
     enabled: isKeeper,
+    refetchInterval: 12_000,
+  });
+
+  const watchQuery = useQuery({
+    queryKey: ["keeper-watch", keeperPhrase],
+    queryFn: () => getKeeperWatch({ data: { keeperPhrase } }),
+    enabled: isKeeper,
+    refetchInterval: 60_000,
   });
 
   useEffect(() => {
@@ -207,7 +252,7 @@ function Home() {
       setPowPhase("challenge");
       setPowProgress(0);
       try {
-      const challenge = await createChallenge({ data: {} });
+      const challenge = await createChallenge({ data: { destination } });
       if (!challenge.ok) {
         return { ok: false as const, error: challenge.error };
       }
@@ -255,6 +300,7 @@ function Home() {
         setCooldownMs(COOLDOWN_MS);
         void queryClient.invalidateQueries({ queryKey: ["faucet"] });
         void queryClient.invalidateQueries({ queryKey: ["drinker"] });
+        void queryClient.invalidateQueries({ queryKey: ["wallet-status"] });
         return;
       }
       if (result.error) setClaimError(result.error);
@@ -315,8 +361,7 @@ function Home() {
   });
 
   const hideDonorMutation = useMutation({
-    mutationFn: (mask: string) =>
-      hideBasinDonor({ data: { keeperPhrase, mask } }),
+    mutationFn: (mask: string) => hideBasinDonor({ data: { keeperPhrase, mask } }),
     onSuccess: (result) => {
       if (!result.ok) {
         setFundError(result.error);
@@ -324,6 +369,38 @@ function Home() {
       }
       toast.success("Removed from the basin. The sats stay in the pot.");
       void queryClient.invalidateQueries({ queryKey: ["faucet"] });
+    },
+  });
+
+  const fillBlocksQuery = useQuery({
+    queryKey: ["fill-blocks", keeperPhrase],
+    queryFn: () => listFillBlocks({ data: { keeperPhrase } }),
+    enabled: isKeeper,
+  });
+
+  const blockFillMutation = useMutation({
+    mutationFn: (address: string) =>
+      blockFillAddress({ data: { keeperPhrase, address } }),
+    onSuccess: (result) => {
+      if (!result.ok) {
+        setFundError(result.error);
+        return;
+      }
+      setFundError(null);
+      void queryClient.invalidateQueries({ queryKey: ["fill-blocks", keeperPhrase] });
+    },
+    onError: () => setFundError("Could not update the fill list."),
+  });
+
+  const unblockFillMutation = useMutation({
+    mutationFn: (address: string) =>
+      unblockFillAddress({ data: { keeperPhrase, address } }),
+    onSuccess: (result) => {
+      if (!result.ok) {
+        setFundError(result.error);
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: ["fill-blocks", keeperPhrase] });
     },
   });
 
@@ -470,7 +547,6 @@ function Home() {
   const maintenance = state?.maintenance ?? false;
   const sealed = !walletConnected;
   const dry = !sealed && balance < 21;
-  const flowing = !sealed && !dry && !maintenance;
 
   return (
     <div className="min-h-dvh">
@@ -484,14 +560,7 @@ function Home() {
           </span>
         </a>
         <div className="flex items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-muted shadow-[var(--shadow-border)]">
-            <span
-              className={`live-dot size-1.5 rounded-full ${
-                flowing ? "bg-gold" : sealed || maintenance ? "bg-subtle" : "bg-danger"
-              }`}
-            />
-            {maintenance ? "Maintenance" : flowing ? "Flowing" : sealed ? "Sealed" : "Dry"}
-          </span>
+          <LangToggle />
           <Button
             type="button"
             variant="ghost"
@@ -522,28 +591,48 @@ function Home() {
             className="mx-auto mt-2 max-w-2xl rounded-xl bg-surface px-4 py-3 text-center shadow-[var(--shadow-border)] sm:mt-4"
           >
             <p className="font-display text-sm font-semibold tracking-tight text-gold">
-              Under maintenance
+              {t("maint.title")}
             </p>
             <p className="mt-1 text-sm leading-normal text-muted">
-              The keeper is moving Lightning. Drink and fill are paused for a
-              day or two. Your streak is frozen — it will not break while the
-              spring is closed.
+              {t("maint.body")}
             </p>
           </div>
         ) : null}
 
         <div className="stagger-in mx-auto max-w-2xl pt-2 text-center sm:pt-8">
           <p className="text-xs font-medium tracking-[0.22em] text-gold uppercase">
-            The fountain of youth
+            {t("hero.kicker")}
           </p>
           <h1 className="mt-2 font-display text-3xl leading-tight font-semibold tracking-tight text-fg sm:mt-3 sm:text-5xl">
-            Drink a random pour.
+            {t("hero.title")}
           </h1>
           <p className="mx-auto mt-2 hidden max-w-lg text-base leading-normal text-muted sm:mt-3 sm:block">
-            Paste a Lightning address. The fountain pays a random pour over
-            Lightning — twenty-one sats up to a jackpot that grows with the
-            spring.
+            {t("hero.body")}
           </p>
+          {isHallowSeason() ? (
+            <div className="relative mx-auto mt-5 max-w-md overflow-hidden rounded-xl bg-surface px-4 py-4 text-center shadow-[var(--shadow-border)]">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 -top-8 h-24"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, rgb(196 92 74 / 0.22), transparent 70%)",
+                }}
+              />
+              <p className="relative font-mono text-[11px] tracking-[0.18em] text-gold uppercase">
+                {hallowNightsLeft() <= 1
+                  ? t("hallow.nightsOne")
+                  : t("hallow.nights", { n: hallowNightsLeft() })}
+              </p>
+              <p className="relative mt-2 flex items-center justify-center gap-2 font-display text-lg font-semibold tracking-tight text-gold">
+                <JackOLantern className="size-6" />
+                {t("hallow.kicker")}
+              </p>
+              <p className="relative mt-1 text-sm leading-normal text-muted">
+                {t("hallow.body")}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <div className="relative mt-3 sm:mt-8">
@@ -553,24 +642,25 @@ function Home() {
 
         <div className="mt-2 text-center">
           {stateQuery.isLoading ? (
-            <p className="font-mono text-sm text-subtle">Reading the spring…</p>
+            <p className="font-mono text-sm text-subtle">{t("well.reading")}</p>
           ) : stateQuery.isError ? (
-            <p className="text-sm text-danger">Could not read the fountain.</p>
+            <p className="text-sm text-danger">{t("well.readFail")}</p>
           ) : sealed ? (
             <p className="font-mono text-sm tabular-nums text-muted">
-              Sealed — waiting for the keeper
+              {t("well.sealed")}
             </p>
           ) : (
             <>
               <p className="font-mono text-sm tabular-nums text-muted">
-                {formatSats(balance)} remaining
+                {t("well.remaining", { sats: formatSats(balance, locale) })}
                 {state?.jackpotSats
-                  ? ` · jackpot ${formatSats(state.jackpotSats)}`
+                  ? t("well.jackpot", { sats: formatSats(state.jackpotSats, locale) })
                   : ""}
               </p>
-              <p className="mt-1 text-xs text-subtle">Tap the fountain to fill</p>
+              <p className="mt-1 text-xs text-subtle">{t("well.tap")}</p>
             </>
           )}
+          <RefillCountdown />
         </div>
 
         <div className="mt-5">
@@ -605,6 +695,11 @@ function Home() {
               walletKind={walletStatus?.kind ?? state?.walletKind ?? null}
               walletSats={walletStatus?.walletSats ?? 0}
               budgetSats={walletStatus?.budgetSats ?? balance}
+              daySpentSats={walletStatus?.daySpentSats ?? 0}
+              dayBudgetSats={walletStatus?.dayBudgetSats ?? 0}
+              dayCapOff={walletStatus?.dayCapOff ?? false}
+              dayJackpotClaimed={walletStatus?.dayJackpotClaimed ?? false}
+              dayJackpotSats={walletStatus?.dayJackpotSats ?? 0}
               pendingConnect={connectMutation.isPending}
               pendingInvoice={invoiceMutation.isPending}
               pendingCommit={commitMutation.isPending}
@@ -632,24 +727,34 @@ function Home() {
               onRotatePhrase={(nextPhrase) =>
                 rotateKeeperMutation.mutate(nextPhrase)
               }
+              blockedAddresses={
+                fillBlocksQuery.data?.ok ? fillBlocksQuery.data.addresses : []
+              }
+              pendingBlock={blockFillMutation.isPending || unblockFillMutation.isPending}
+              onBlockAddress={(address) => blockFillMutation.mutate(address)}
+              onUnblockAddress={(address) => unblockFillMutation.mutate(address)}
             />
           ) : null}
         </div>
+
+        {isKeeper ? (
+          <div className="mt-4">
+            <KeeperWatch
+              watch={watchQuery.data && watchQuery.data.ok ? watchQuery.data : null}
+              pending={watchQuery.isLoading}
+            />
+          </div>
+        ) : null}
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <RecentDrips pours={state?.recent ?? []} now={now} />
           <Leaderboard
             bySats={state?.boardSats ?? []}
             byStreak={state?.boardStreak ?? []}
-            maintenance={maintenance}
-          />
-        </div>
-
-        <div className="mt-4">
-          <Donorboard
             donors={state?.boardDonors ?? []}
+            maintenance={maintenance}
             keeper={isKeeper}
-            onHide={(mask) => hideDonorMutation.mutate(mask)}
+            onHideDonor={(mask) => hideDonorMutation.mutate(mask)}
           />
         </div>
 
@@ -657,18 +762,18 @@ function Home() {
           {[
             {
               step: "01",
-              title: "Aim",
-              body: "Drop in a Lightning address like name@walletofsatoshi.com or you@getalby.com.",
+              title: t("how.aimTitle"),
+              body: t("how.aimBody"),
             },
             {
               step: "02",
-              title: "Drink",
-              body: "A puzzle proves you are not a bot. Then the fountain pays a random pour. A fuller spring pours more.",
+              title: t("how.drinkTitle"),
+              body: t("how.drinkBody"),
             },
             {
               step: "03",
-              title: "Return",
-              body: "Each UTC day adds a streak and 0.1% jackpot odds, capped at +5%. Streaks tilt the chance, not the size.",
+              title: t("how.returnTitle"),
+              body: t("how.returnBody"),
             },
           ].map((item) => (
             <div key={item.step}>
@@ -681,60 +786,71 @@ function Home() {
           ))}
         </section>
 
+        <p className="mt-8 text-sm text-muted">
+          <Link to="/know" className="text-gold underline-offset-2 hover:underline">
+            {t("nav.know")}
+          </Link>
+          . {t("know.home")}
+        </p>
+
         <p className="mt-12 max-w-2xl text-xs leading-normal text-subtle">
           <Link
             to="/changelog"
             className="text-gold underline-offset-2 hover:underline"
           >
-            v1.3
+            v1.5.1
           </Link>
-          . Fountain of Youth pays real satoshis over Lightning from the
-          keeper’s connected wallet. One drink per address per day. Streaks,
-          Legacy, and the leaderboard count paid pours only. No accounts. IP
-          hashed for rate limits. Lightning address hashed for streaks. No data
-          sold.{" "}
+          . {t("footer.blurb")}{" "}
           <button
             type="button"
             className="text-gold underline-offset-2 hover:underline"
             onClick={openFill}
           >
-            Fill the spring
+            {t("footer.fill")}
           </button>
-          . Tips are Lightning invoices, max 10,000 sats, one address per day.
-          100% to pours.
+          . {t("footer.tips")}
         </p>
         <nav className="mt-3 flex max-w-2xl flex-wrap gap-x-4 gap-y-1 text-xs text-subtle">
           <Link to="/faq" className="text-gold underline-offset-2 hover:underline">
-            FAQ
+            {t("nav.faq")}
+          </Link>
+          <Link to="/know" className="text-gold underline-offset-2 hover:underline">
+            {t("nav.know")}
+          </Link>
+          <Link
+            to="/embed"
+            className="text-gold underline-offset-2 hover:underline"
+          >
+            {t("nav.embed")}
           </Link>
           <Link
             to="/changelog"
             className="text-gold underline-offset-2 hover:underline"
           >
-            Changelog
+            {t("nav.changelog")}
           </Link>
           <Link
             to="/feedback"
             className="text-gold underline-offset-2 hover:underline"
           >
-            Feedback
+            {t("nav.feedback")}
           </Link>
           <Link
             to="/privacy"
             className="text-gold underline-offset-2 hover:underline"
           >
-            Privacy
+            {t("nav.privacy")}
           </Link>
           <Link to="/terms" className="text-gold underline-offset-2 hover:underline">
-            Terms
+            {t("nav.terms")}
           </Link>
           <a
-            href="https://github.com/DrSteve2005"
+            href="https://github.com/DrSteve2005/fountain-of-youth"
             target="_blank"
             rel="noreferrer"
             className="text-gold underline-offset-2 hover:underline"
           >
-            GitHub
+            {t("nav.github")}
           </a>
         </nav>
       </main>

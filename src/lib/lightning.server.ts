@@ -2,6 +2,27 @@ import { bech32 } from "bech32";
 import { decode as decodeBolt11 } from "light-bolt11-decoder";
 import { dbSource, getSql, type Sql } from "@/lib/db";
 import type { WalletKind } from "@/lib/faucet";
+import {
+  INVOICE_SOFT,
+  invoiceFailureMessage,
+  lightningHostPage,
+  lnurlProblem,
+  parseLightningBody,
+  payFailureMessage,
+} from "@/lib/lightning-body";
+
+export {
+  ADDRESS_MISSING,
+  INVOICE_PAGE,
+  INVOICE_SOFT,
+  PAY_OFFLINE,
+  PAY_SLOW,
+  WALLET_LOW,
+  invoiceFailureMessage,
+  lnurlProblem,
+  parseLightningBody,
+  payFailureMessage,
+} from "@/lib/lightning-body";
 
 /**
  * Legacy fallback salt. This used to be the *only* key material behind
@@ -269,12 +290,8 @@ async function fetchJson(url: string, init: RequestInit, timeoutMs: number) {
   });
   const text = await response.text();
   if (text.length > 80_000) throw new Error("Lightning host returned too much data.");
-  let data: unknown = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    throw new Error("Lightning host returned invalid JSON.");
-  }
+  const data = parseLightningBody(text);
+  if (data === undefined) throw new Error(lightningHostPage());
   return { ok: response.ok, status: response.status, data };
 }
 
@@ -318,7 +335,14 @@ export async function lnurlPayInvoice(
   }
 
   const safe = assertPublicHttps(lnurlpUrl);
-  const first = await fetchJson(safe.toString(), { method: "GET" }, LNURL_TIMEOUT_MS);
+  let first: { ok: boolean; data: unknown };
+  try {
+    first = await fetchJson(safe.toString(), { method: "GET" }, LNURL_TIMEOUT_MS);
+  } catch (err) {
+    throw new Error(invoiceFailureMessage(err));
+  }
+  const firstProblem = lnurlProblem(first.data);
+  if (firstProblem) throw new Error(firstProblem);
   if (!first.ok || !first.data || typeof first.data !== "object") {
     throw new Error("That Lightning address did not answer.");
   }
@@ -344,13 +368,20 @@ export async function lnurlPayInvoice(
 
   const payUrl = new URL(callback.toString());
   payUrl.searchParams.set("amount", String(msat));
-  const second = await fetchJson(payUrl.toString(), { method: "GET" }, LNURL_TIMEOUT_MS);
+  let second: { ok: boolean; data: unknown };
+  try {
+    second = await fetchJson(payUrl.toString(), { method: "GET" }, LNURL_TIMEOUT_MS);
+  } catch (err) {
+    throw new Error(invoiceFailureMessage(err));
+  }
+  const secondProblem = lnurlProblem(second.data);
+  if (secondProblem) throw new Error(secondProblem);
   if (!second.ok || !second.data || typeof second.data !== "object") {
-    throw new Error("Could not request an invoice from that wallet.");
+    throw new Error(INVOICE_SOFT);
   }
   const pr = (second.data as { pr?: string }).pr;
   if (!pr || !/^ln(bc|tb)[0-9a-z]+$/i.test(pr)) {
-    throw new Error("That wallet did not return a Lightning invoice.");
+    throw new Error(INVOICE_SOFT);
   }
   const invoiceMsat = invoiceAmountMsat(pr);
   if (invoiceMsat == null) {
@@ -548,24 +579,29 @@ export async function payBolt11(blob: WalletBlob, bolt11: string): Promise<strin
     }
   }
   if (blob.kind === "lnbits" && blob.lnbitsUrl && blob.lnbitsKey) {
-    const res = await fetchJson(
-      `${blob.lnbitsUrl}/api/v1/payments`,
-      {
-        method: "POST",
-        headers: {
-          "X-Api-Key": blob.lnbitsKey,
-          "content-type": "application/json",
+    let res: { ok: boolean; data: unknown };
+    try {
+      res = await fetchJson(
+        `${blob.lnbitsUrl}/api/v1/payments`,
+        {
+          method: "POST",
+          headers: {
+            "X-Api-Key": blob.lnbitsKey,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ out: true, bolt11 }),
         },
-        body: JSON.stringify({ out: true, bolt11 }),
-      },
-      PAY_TIMEOUT_MS,
-    );
+        PAY_TIMEOUT_MS,
+      );
+    } catch (err) {
+      throw new Error(payFailureMessage(err));
+    }
     if (!res.ok) {
       const detail =
         res.data && typeof res.data === "object"
           ? String((res.data as { detail?: string }).detail ?? "")
           : "";
-      throw new Error(detail || "LNbits could not send the pour.");
+      throw new Error(payFailureMessage(new Error(detail || "LNbits could not send the pour.")));
     }
     const row = (res.data ?? {}) as { payment_hash?: string; preimage?: string };
     return row.payment_hash || row.preimage || "paid";

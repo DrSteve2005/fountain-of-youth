@@ -10,7 +10,7 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <LegalPage kicker="v1.3" title="Terms" updated="Effective 31 August 2026">
+    <LegalPage kicker="v1.5.1" title="Terms" updated="Effective 17 October 2026">
       <p>
         Fountain of Youth is a public Lightning spring. You drink a random
         pour. You may fill it. There is no account. Using the site is agreeing
@@ -78,7 +78,7 @@ function TermsPage() {
       <LegalSection title="Risk">
         <p>
           Bitcoin and Lightning can fail, delay, or pay the wrong hop. Fees,
-          a down Hub, or a dry pot mean you get nothing. You keep your own
+          a down wallet, or a dry pot mean you get nothing. You keep your own
           keys. We never ask for a seed. Satoshis you receive may be taxable
           where you live — that is yours to handle.
         </p>
@@ -86,7 +86,7 @@ function TermsPage() {
 
       <LegalSection title="Acceptable use">
         <p>
-          No bots farming the spring. No attacking the host, the Hub, or other
+          No bots farming the spring. No attacking the host, the wallet, or other
           drinkers. No using the fountain to launder value or to harass. The
           keeper can seal the spring, change the pot, or shut the site down
           without notice.

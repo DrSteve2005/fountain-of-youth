@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, LegalSection } from "@/components/legal-page";
 import { Button } from "@/components/ui/button";
 import { FEEDBACK_EMAIL } from "@/lib/faucet";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/feedback")({
@@ -12,14 +13,11 @@ export const Route = createFileRoute("/feedback")({
   }),
 });
 
-const TOPICS = [
-  { id: "bug", label: "Bug" },
-  { id: "idea", label: "Idea" },
-  { id: "other", label: "Other" },
-] as const;
+const TOPICS = ["bug", "idea", "other"] as const;
 
 function FeedbackPage() {
-  const [topic, setTopic] = useState<(typeof TOPICS)[number]["id"]>("idea");
+  const { t } = useI18n();
+  const [topic, setTopic] = useState<(typeof TOPICS)[number]>("idea");
   const [body, setBody] = useState("");
 
   const mailto = useMemo(() => {
@@ -34,49 +32,47 @@ function FeedbackPage() {
   }
 
   return (
-    <LegalPage kicker="v1.3" title="Feedback" updated="31 August 2026">
+    <LegalPage kicker="v1.5.1" title={t("nav.feedback")} updated="17 October 2026">
       <p>
-        Tell the keeper if something broke, if a neighbour got locked out, or
-        if you have an idea. This does not create an account. It opens your
-        mail app to{" "}
+        {t("feedback.lead")}{" "}
         <a
           href={`mailto:${FEEDBACK_EMAIL}`}
           className="font-mono text-gold underline-offset-2 hover:underline"
         >
           {FEEDBACK_EMAIL}
         </a>
-        . Do not send seeds, NWC strings, or the keeper phrase.
+        . {t("feedback.warn")}
       </p>
 
-      <LegalSection title="Write">
+      <LegalSection title={t("feedback.write")}>
         <form onSubmit={submit} className="space-y-3">
           <div className="flex flex-wrap gap-2">
-            {TOPICS.map((item) => (
+            {TOPICS.map((id) => (
               <button
-                key={item.id}
+                key={id}
                 type="button"
                 className={cn(
                   "h-9 rounded-full px-3 text-sm",
-                  topic === item.id
+                  topic === id
                     ? "bg-gold text-bg"
                     : "bg-surface text-muted shadow-[var(--shadow-border)] hover:text-fg",
                 )}
-                onClick={() => setTopic(item.id)}
+                onClick={() => setTopic(id)}
               >
-                {item.label}
+                {t(`feedback.${id}`)}
               </button>
             ))}
           </div>
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted uppercase">
-              Message
+              {t("feedback.message")}
             </span>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={7}
               maxLength={2000}
-              placeholder="What should the keeper know?"
+              placeholder={t("feedback.placeholder")}
               className={cn(
                 "flex min-h-32 w-full rounded-md bg-bg px-3 py-2 text-sm text-fg",
                 "shadow-[var(--shadow-border)] outline-none",
@@ -86,7 +82,7 @@ function FeedbackPage() {
               )}
             />
           </label>
-          <Button type="submit">Open mail</Button>
+          <Button type="submit">{t("feedback.send")}</Button>
         </form>
       </LegalSection>
     </LegalPage>

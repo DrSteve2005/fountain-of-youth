@@ -1,4 +1,6 @@
-import { poolFill } from "@/lib/faucet";
+import { JackOLantern } from "@/components/leaderboard";
+import { isHallowSeason, poolFill } from "@/lib/faucet";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type FaucetWellProps = {
@@ -14,6 +16,11 @@ const COINS = [
   { delay: "1.25s", left: "50%", duration: "2s", size: 12 },
 ];
 
+const LANTERNS = [
+  { delay: "0.55s", left: "38%", duration: "2.15s", size: 18 },
+  { delay: "1.5s", left: "60%", duration: "1.9s", size: 15 },
+];
+
 const BURST = Array.from({ length: 10 }, (_, i) => ({
   delay: `${i * 0.06}s`,
   left: `${42 + (i % 5) * 3.4}%`,
@@ -21,6 +28,7 @@ const BURST = Array.from({ length: 10 }, (_, i) => ({
 }));
 
 export function FaucetWell({ balance, pouring, onFill }: FaucetWellProps) {
+  const { t } = useI18n();
   const fill = poolFill(balance);
   const dry = balance < 21;
   const intense = fill > 0.45;
@@ -29,14 +37,15 @@ export function FaucetWell({ balance, pouring, onFill }: FaucetWellProps) {
     <button
       type="button"
       className="relative mx-auto block w-full max-w-[240px] cursor-pointer select-none sm:max-w-[340px]"
-      aria-label="Fill the spring"
+      aria-label={t("well.fillAria")}
       onClick={onFill}
     >
       <div
         className="absolute inset-x-[8%] top-[12%] h-[58%] rounded-full opacity-80"
         style={{
-          background:
-            "radial-gradient(ellipse at center, rgb(212 175 55 / 0.18), transparent 68%)",
+          background: isHallowSeason()
+            ? "radial-gradient(ellipse at center, rgb(196 92 74 / 0.16), transparent 62%)"
+            : "radial-gradient(ellipse at center, rgb(212 175 55 / 0.18), transparent 68%)",
         }}
         aria-hidden
       />
@@ -215,6 +224,27 @@ export function FaucetWell({ balance, pouring, onFill }: FaucetWellProps) {
             </span>
           ))}
 
+        {!dry &&
+          isHallowSeason() &&
+          LANTERNS.map((lantern, i) => (
+            <span
+              key={`lantern-${i}`}
+              className={cn(
+                "drip-coin absolute top-[26%] text-gold",
+                intense || pouring ? "drip-coin-fast" : "",
+              )}
+              style={{
+                left: lantern.left,
+                width: `clamp(12px, ${lantern.size * 0.36}cqw, ${lantern.size}px)`,
+                height: `clamp(12px, ${lantern.size * 0.36}cqw, ${lantern.size}px)`,
+                animationDelay: lantern.delay,
+                animationDuration: pouring ? "0.75s" : lantern.duration,
+              }}
+            >
+              <JackOLantern className="size-full" />
+            </span>
+          ))}
+
         {pouring &&
           BURST.map((coin, i) => (
             <span
@@ -226,6 +256,7 @@ export function FaucetWell({ balance, pouring, onFill }: FaucetWellProps) {
                 height: `clamp(10px, ${coin.size * 0.32}cqw, ${coin.size}px)`,
                 fontSize: "0.55em",
                 animation: `aureus-pour-burst 0.95s cubic-bezier(0.22, 1, 0.36, 1) ${coin.delay} both`,
+                translate: "-50% 0",
                 boxShadow: "0 0 12px rgb(240 208 96 / 0.55)",
               }}
             >

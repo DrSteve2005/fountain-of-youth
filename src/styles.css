@@ -14,6 +14,7 @@
   --color-gold: #d4af37;
   --color-gold-bright: #f0d060;
   --color-gold-deep: #8a6a12;
+  --color-ember: #e08a3c;
   --color-line: rgb(244 239 228 / 0.1);
   --color-line-strong: rgb(244 239 228 / 0.18);
   --color-danger: #c45c4a;
@@ -70,15 +71,17 @@
 
 @keyframes aureus-drip {
   0% {
-    transform: translate(-50%, 0) scale(1);
+    top: 26%;
+    scale: 1;
     opacity: 0.95;
   }
   78% {
     opacity: 0.9;
   }
   100% {
-    /* 57% of well height: finial → lower basin, scales on mobile */
-    transform: translate(-50%, 57cqh) scale(0.72);
+    /* Finial → lower basin. Percentage of the well, so it lands on phones. */
+    top: 82%;
+    scale: 0.72;
     opacity: 0;
   }
 }
@@ -107,14 +110,18 @@
 
 @keyframes aureus-pour-burst {
   0% {
-    transform: translate(-50%, -2cqh) scale(0.6);
+    top: 24%;
+    scale: 0.6;
+    rotate: 0deg;
     opacity: 0;
   }
   18% {
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, 58cqh) scale(0.7) rotate(18deg);
+    top: 84%;
+    scale: 0.7;
+    rotate: 18deg;
     opacity: 0;
   }
 }
@@ -122,19 +129,23 @@
 @keyframes aureus-splash {
   0% {
     opacity: 0;
-    transform: translateY(-6px) scale(0.96);
+    translate: 0 -6px;
+    scale: 0.96;
   }
   8% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    translate: 0 0;
+    scale: 1;
   }
   84% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    translate: 0 0;
+    scale: 1;
   }
   100% {
     opacity: 0;
-    transform: translateY(-4px) scale(0.98);
+    translate: 0 -4px;
+    scale: 0.98;
   }
 }
 
@@ -180,8 +191,9 @@
 }
 
 .drip-coin {
+  translate: -50% 0;
   animation: aureus-drip 1.8s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) infinite;
-  will-change: transform, opacity;
+  will-change: top, opacity;
 }
 
 .drip-coin-fast {

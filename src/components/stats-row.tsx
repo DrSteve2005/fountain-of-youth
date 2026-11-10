@@ -1,4 +1,5 @@
 import { formatBtc, formatSats } from "@/lib/faucet";
+import { useI18n } from "@/lib/i18n";
 
 type StatsRowProps = {
   balance: number;
@@ -29,18 +30,23 @@ function Stat({
 }
 
 export function StatsRow({ balance, totalClaimed, claimCount }: StatsRowProps) {
+  const { t, locale } = useI18n();
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
-      <Stat label="In the spring" value={formatSats(balance)} hint={formatBtc(balance)} />
       <Stat
-        label="Poured"
-        value={formatSats(totalClaimed)}
+        label={t("stats.spring")}
+        value={formatSats(balance, locale)}
+        hint={formatBtc(balance)}
+      />
+      <Stat
+        label={t("stats.poured")}
+        value={formatSats(totalClaimed, locale)}
         hint={formatBtc(totalClaimed)}
       />
       <Stat
-        label="Drips"
-        value={claimCount.toLocaleString("en-US")}
-        hint="Paid Lightning pours"
+        label={t("stats.drips")}
+        value={claimCount.toLocaleString(locale)}
+        hint={t("stats.dripsHint")}
       />
     </div>
   );

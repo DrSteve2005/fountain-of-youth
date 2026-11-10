@@ -8,10 +8,14 @@ import {
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth/provider";
+import { LangProvider } from "@/lib/i18n";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Fountain of Youth";
+const SHARE_DESC = "One Lightning drink a day.";
+const SHARE_IMAGE = "https://getfountainofyouth.net/og.jpg";
+const SHARE_URL = "https://getfountainofyouth.net/";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -31,12 +35,21 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      {
-        name: "description",
-        content:
-          "The Fountain of Youth — drink a random Lightning pour of sats. Keeper-loaded, bot-limited.",
-      },
+      { name: "description", content: SHARE_DESC },
       { name: "theme-color", content: "#0c0a08" },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: APP_NAME },
+      { property: "og:title", content: APP_NAME },
+      { property: "og:description", content: SHARE_DESC },
+      { property: "og:url", content: SHARE_URL },
+      { property: "og:image", content: SHARE_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Fountain of Youth. One Lightning drink a day." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: APP_NAME },
+      { name: "twitter:description", content: SHARE_DESC },
+      { name: "twitter:image", content: SHARE_IMAGE },
     ],
     links: [
       { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon-48.png" },
@@ -71,15 +84,17 @@ function RootDocument() {
         <PreviewHostBridge />
         <AuthProvider>
           <QueryClientProvider client={queryClient}>
-            <Outlet />
-            <Toaster
-              theme="dark"
-              position="top-center"
-              toastOptions={{
-                className:
-                  "!bg-surface !text-fg !border-line !font-[Outfit,sans-serif]",
-              }}
-            />
+            <LangProvider>
+              <Outlet />
+              <Toaster
+                theme="dark"
+                position="top-center"
+                toastOptions={{
+                  className:
+                    "!bg-surface !text-fg !border-line !font-[Outfit,sans-serif]",
+                }}
+              />
+            </LangProvider>
           </QueryClientProvider>
         </AuthProvider>
         <Scripts />

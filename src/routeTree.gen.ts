@@ -11,10 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as EmbedRouteImport } from './routes/embed'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as KnowRouteImport } from './routes/know'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ApiPotRouteImport } from './routes/api/pot'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedRoute = EmbedRouteImport.update({
+  id: '/embed',
+  path: '/embed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -36,6 +44,11 @@ const FeedbackRoute = FeedbackRouteImport.update({
   path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KnowRoute = KnowRouteImport.update({
+  id: '/know',
+  path: '/know',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -46,54 +59,92 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPotRoute = ApiPotRouteImport.update({
+  id: '/api/pot',
+  path: '/api/pot',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/embed': typeof EmbedRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/know': typeof KnowRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/api/pot': typeof ApiPotRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/embed': typeof EmbedRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/know': typeof KnowRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/api/pot': typeof ApiPotRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/embed': typeof EmbedRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/know': typeof KnowRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/api/pot': typeof ApiPotRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/changelog' | '/faq' | '/feedback' | '/privacy' | '/terms'
+  fullPaths:
+    | '/'
+    | '/changelog'
+    | '/embed'
+    | '/faq'
+    | '/feedback'
+    | '/know'
+    | '/privacy'
+    | '/terms'
+    | '/api/pot'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/changelog' | '/faq' | '/feedback' | '/privacy' | '/terms'
+  to:
+    | '/'
+    | '/changelog'
+    | '/embed'
+    | '/faq'
+    | '/feedback'
+    | '/know'
+    | '/privacy'
+    | '/terms'
+    | '/api/pot'
   id:
     | '__root__'
     | '/'
     | '/changelog'
+    | '/embed'
     | '/faq'
     | '/feedback'
+    | '/know'
     | '/privacy'
     | '/terms'
+    | '/api/pot'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChangelogRoute: typeof ChangelogRoute
+  EmbedRoute: typeof EmbedRoute
   FaqRoute: typeof FaqRoute
   FeedbackRoute: typeof FeedbackRoute
+  KnowRoute: typeof KnowRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  ApiPotRoute: typeof ApiPotRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -112,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embed': {
+      id: '/embed'
+      path: '/embed'
+      fullPath: '/embed'
+      preLoaderRoute: typeof EmbedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -124,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/feedback'
       fullPath: '/feedback'
       preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/know': {
+      id: '/know'
+      path: '/know'
+      fullPath: '/know'
+      preLoaderRoute: typeof KnowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -140,16 +205,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/pot': {
+      id: '/api/pot'
+      path: '/api/pot'
+      fullPath: '/api/pot'
+      preLoaderRoute: typeof ApiPotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangelogRoute: ChangelogRoute,
+  EmbedRoute: EmbedRoute,
   FaqRoute: FaqRoute,
   FeedbackRoute: FeedbackRoute,
+  KnowRoute: KnowRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  ApiPotRoute: ApiPotRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

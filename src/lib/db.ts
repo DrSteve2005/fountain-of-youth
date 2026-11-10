@@ -35,6 +35,8 @@ export interface Sql {
     text: string,
     params?: unknown[],
   ): Promise<T[]>;
+  /** One connection, begin/commit. A thrown error rolls back. */
+  transaction<T>(fn: (tx: Sql) => Promise<T>): Promise<T>;
 }
 
 /**
@@ -82,6 +84,9 @@ function toSql(run: Run): Sql {
   }) as unknown as Sql;
   sql.query = <T = Record<string, unknown>>(text: string, params: unknown[] = []) =>
     run<T>(text, params);
+  sql.transaction = async () => {
+    throw new Error("Transactions are not available on this connection.");
+  };
   return sql;
 }
 
@@ -94,10 +99,33 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
     const pool = new Pool({ connectionString: databaseUrl });
-    return toSql(async <T>(text: string, params: unknown[]) => {
+    const sql = toSql(async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];
     });
+    sql.transaction = async <T>(fn: (tx: Sql) => Promise<T>): Promise<T> => {
+      const client = await pool.connect();
+      const tx = toSql(async <R>(text: string, params: unknown[]) => {
+        const res = await client.query(text, params);
+        return res.rows as R[];
+      });
+      try {
+        await client.query("BEGIN");
+        const result = await fn(tx);
+        await client.query("COMMIT");
+        return result;
+      } catch (err) {
+        try {
+          await client.query("ROLLBACK");
+        } catch {
+          /* the connection is discarded on release */
+        }
+        throw err;
+      } finally {
+        client.release();
+      }
+    };
+    return sql;
   })().catch((err) => {
     globalRef.__pgSqlPromise__ = undefined;
     throw err;
@@ -161,10 +189,20 @@ async function createPgliteSql(): Promise<Sql> {
   globalRef.__pgliteMigrateChain__ = pass;
   await pass;
 
-  return toSql(async <T>(text: string, params: unknown[]) => {
+  const sql = toSql(async <T>(text: string, params: unknown[]) => {
     const result = await pg.query<T>(text, params);
     return result.rows;
   });
+  sql.transaction = async <T>(fn: (tx: Sql) => Promise<T>): Promise<T> => {
+    return pg.transaction(async (pgTx) => {
+      const tx = toSql(async <R>(text: string, params: unknown[]) => {
+        const result = await pgTx.query<R>(text, params);
+        return result.rows;
+      });
+      return fn(tx);
+    });
+  };
+  return sql;
 }
 
 let sqlPromise: Promise<Sql> | null = null;

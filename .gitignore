@@ -15,3 +15,10 @@ attachments
 .node_modules.lock
 *.zip
 public/__grok/
+
+# builder / local-only material
+.vercel/
+.tanstack/
+screenshots/
+attachments/
+artifacts/

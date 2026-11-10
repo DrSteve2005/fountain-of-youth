@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Check, Copy, LoaderCircle, Plus, Unplug, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,43 @@ import {
 } from "@/lib/faucet";
 import { cn } from "@/lib/utils";
 
+function msUntilUtcMidnight(now = Date.now()): number {
+  const date = new Date(now);
+  const next = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate() + 1,
+  );
+  return Math.max(0, next - now);
+}
+
+function formatReset(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  return `${hours}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+}
+
+function useUtcResetCountdown(): string {
+  const [left, setLeft] = useState(() => msUntilUtcMidnight());
+  useEffect(() => {
+    const id = window.setInterval(() => setLeft(msUntilUtcMidnight()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  return formatReset(left);
+}
+
 type FundCardProps = {
   walletConnected: boolean;
   walletKind: WalletKind | null;
   walletSats: number;
   budgetSats: number;
+  daySpentSats: number;
+  dayBudgetSats: number;
+  dayCapOff: boolean;
+  dayJackpotClaimed: boolean;
+  dayJackpotSats: number;
   pendingConnect: boolean;
   pendingInvoice: boolean;
   pendingCommit: boolean;
@@ -34,6 +66,10 @@ type FundCardProps = {
   onSetMaintenance: (on: boolean) => void;
   pendingRotate?: boolean;
   onRotatePhrase?: (nextPhrase: string) => void;
+  blockedAddresses?: string[];
+  pendingBlock?: boolean;
+  onBlockAddress?: (address: string) => void;
+  onUnblockAddress?: (address: string) => void;
 };
 
 export function FundCard({
@@ -41,6 +77,11 @@ export function FundCard({
   walletKind,
   walletSats,
   budgetSats,
+  daySpentSats,
+  dayBudgetSats,
+  dayCapOff,
+  dayJackpotClaimed,
+  dayJackpotSats,
   pendingConnect,
   pendingInvoice,
   pendingCommit,
@@ -58,7 +99,12 @@ export function FundCard({
   onSetMaintenance,
   pendingRotate,
   onRotatePhrase,
+  blockedAddresses = [],
+  pendingBlock,
+  onBlockAddress,
+  onUnblockAddress,
 }: FundCardProps) {
+  const resetIn = useUtcResetCountdown();
   const [method, setMethod] = useState<"nwc" | "lnbits">("nwc");
   const [nwc, setNwc] = useState("");
   const [lnbitsUrl, setLnbitsUrl] = useState("");
@@ -69,6 +115,7 @@ export function FundCard({
 
   const [nextPhrase, setNextPhrase] = useState("");
   const [nextPhraseAgain, setNextPhraseAgain] = useState("");
+  const [blockAddress, setBlockAddress] = useState("");
 
   const customN = Number.parseInt(custom.replace(/[^\d]/g, ""), 10);
   const customValid =
@@ -113,6 +160,73 @@ export function FundCard({
         ) : (
           <Plus className="mt-1 size-4 text-gold" aria-hidden />
         )}
+      </div>
+
+      <div className="mt-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-medium text-fg">Today's pours</p>
+          <p className="font-mono text-xs tabular-nums text-muted">
+            {dayCapOff
+              ? "No cap"
+              : `${formatSats(daySpentSats)} / ${formatSats(dayBudgetSats)}`}
+          </p>
+        </div>
+        <div
+          className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2"
+          role="meter"
+          aria-valuemin={0}
+          aria-valuemax={dayCapOff ? 1 : dayBudgetSats}
+          aria-valuenow={
+            dayCapOff ? 0 : Math.min(daySpentSats, dayBudgetSats)
+          }
+          aria-label="Today's pours"
+        >
+          <div
+            className="h-full bg-gold transition-[width] duration-150 ease-out"
+            style={{
+              width: dayCapOff
+                ? "0%"
+                : `${Math.min(
+                    100,
+                    dayBudgetSats > 0 ? (daySpentSats / dayBudgetSats) * 100 : 0,
+                  )}%`,
+            }}
+          />
+        </div>
+        <p className="mt-1.5 text-xs leading-normal text-subtle">
+          {dayCapOff
+            ? "Under 1,000 sats the day does not rest. The well may be emptied."
+            : "A UTC day pays 30% of the pot in ordinary pours, then the spring rests."}
+        </p>
+      </div>
+
+      <div className="mt-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-medium text-fg">Today's jackpot</p>
+          <p className="font-mono text-xs tabular-nums text-muted">
+            {dayJackpotClaimed ? "1 / 1" : "0 / 1"}
+            {dayJackpotSats > 0 ? ` · ${formatSats(dayJackpotSats)}` : ""}
+          </p>
+        </div>
+        <div
+          className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2"
+          role="meter"
+          aria-valuemin={0}
+          aria-valuemax={1}
+          aria-valuenow={dayJackpotClaimed ? 1 : 0}
+          aria-label="Today's jackpot"
+        >
+          <div
+            className="h-full bg-gold transition-[width] duration-150 ease-out"
+            style={{ width: dayJackpotClaimed ? "100%" : "0%" }}
+          />
+        </div>
+        <p className="mt-1.5 text-xs leading-normal text-subtle">
+          One per UTC day. It does not count toward the 30%.
+        </p>
+        <p className="mt-3 font-mono text-xs tabular-nums text-muted">
+          Both reset in {resetIn}
+        </p>
       </div>
 
       <div className="mt-4 rounded-md bg-bg px-3 py-3 shadow-[var(--shadow-border)]">
@@ -191,6 +305,57 @@ export function FundCard({
           >
             {pendingRotate ? "Saving…" : "Replace the phrase"}
           </Button>
+        </form>
+      ) : null}
+
+      {onBlockAddress ? (
+        <form
+          className="mt-4 space-y-3 rounded-md bg-bg px-3 py-3 shadow-[var(--shadow-border)]"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const address = blockAddress.trim();
+            if (!address) return;
+            onBlockAddress(address);
+            setBlockAddress("");
+          }}
+        >
+          <p className="text-sm font-medium text-fg">Cannot fill</p>
+          <p className="text-xs leading-normal text-subtle">
+            A Lightning address here cannot pay into the spring. Drinking is
+            unchanged. The list starts empty. You add the ones that should not
+            fill.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={blockAddress}
+              onChange={(e) => setBlockAddress(e.target.value)}
+              placeholder="name@wallet.com"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <Button type="submit" variant="ghost" size="sm" disabled={pendingBlock || blockAddress.trim().length < 5}>
+              {pendingBlock ? "Saving…" : "Block"}
+            </Button>
+          </div>
+          {blockedAddresses.length > 0 ? (
+            <ul className="space-y-1">
+              {blockedAddresses.map((address) => (
+                <li key={address} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate font-mono text-muted">{address}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 text-subtle hover:text-fg"
+                    disabled={pendingBlock}
+                    onClick={() => onUnblockAddress?.(address)}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-subtle">None blocked.</p>
+          )}
         </form>
       ) : null}
 
