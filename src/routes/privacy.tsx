@@ -12,9 +12,9 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <LegalPage
-      kicker="v1.5.1"
+      kicker="v1.5.2"
       title="Privacy"
-      updated="Effective 13 October 2026"
+      updated="Effective 20 November 2026"
     >
       <p>
         Fountain of Youth has no accounts and no login. We do not sell data. A
@@ -93,6 +93,12 @@ function PrivacyPage() {
           and Legacy honest, and to run the public board. Legal bases: the
           pour you asked for, and legitimate interest in not being farmed.
         </p>
+        <p>
+          Each drink also checks your country, which the host works out from
+          your IP address, so the fountain can refuse places under sanctions.
+          The country is checked and then dropped. We do not store it. Basis:
+          a legal duty to avoid paying sanctioned regions.
+        </p>
       </LegalSection>
 
       <LegalSection title="What we do not do">
@@ -105,14 +111,16 @@ function PrivacyPage() {
 
       <LegalSection title="Third parties">
         <p>
-          Lightning payments leave this database. The keeper pays them from an
-          LNbits wallet. LNbits and the Lightning Network keep their own logs.
+          Lightning payments leave this database. The keeper pays them from a
+          connected Lightning wallet (NWC or LNbits). The wallet provider and
+          the Lightning Network keep their own logs.
         </p>
         <p>
-          The site is hosted on a cloud app platform. If the keeper puts
-          Cloudflare or another CDN in front, that operator sees visitor IPs
-          for the time their product retains them. We did not add a marketing
-          pixel.
+          The site is hosted on Vercel and its database is on Neon. Cloudflare
+          runs the domain name records. Those operators can see visitor IPs
+          for the time their products retain them. If the keeper ever puts
+          Cloudflare or another CDN in front of the site, that operator sees
+          them too. We did not add a marketing pixel.
         </p>
         <p>
           Type is loaded from Google Fonts. Google may see that your browser

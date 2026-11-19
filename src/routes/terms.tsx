@@ -10,7 +10,7 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <LegalPage kicker="v1.5.1" title="Terms" updated="Effective 17 October 2026">
+    <LegalPage kicker="v1.5.2" title="Terms" updated="Effective 20 November 2026">
       <p>
         Fountain of Youth is a public Lightning spring. You drink a random
         pour. You may fill it. There is no account. Using the site is agreeing
@@ -25,6 +25,21 @@ function TermsPage() {
           dry. A pour can fail. Nothing here is a bank, a broker, an
           investment, or a promise of future sats.
         </p>
+      </LegalSection>
+
+      <LegalSection title="Who can use it">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>You must be 18 or older.</li>
+          <li>
+            The fountain does not pay places under sanctions. Visitors from
+            Russia and North Korea are refused, and the keeper can add more
+            places at any time.
+          </li>
+          <li>
+            Do not use a VPN or any other tool to hide where you are so you
+            can get around a regional block.
+          </li>
+        </ul>
       </LegalSection>
 
       <LegalSection title="Drinks">
@@ -49,7 +64,9 @@ function TermsPage() {
             only.
           </li>
           <li>
-            Legacy was the first 100 unique paid drinkers. That set is closed.
+            Legacy was the first 100 unique paid drinkers of the original
+            spring. That set is closed for good, and no new Legacy badges are
+            awarded.
           </li>
         </ul>
       </LegalSection>
