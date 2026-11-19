@@ -22,3 +22,9 @@ public/__grok/
 screenshots/
 attachments/
 artifacts/
+*.pem
+*.key
+.dev.vars
+*.db
+*.sqlite
+.claude/settings.local.json
