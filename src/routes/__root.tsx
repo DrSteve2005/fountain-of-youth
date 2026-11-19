@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useState } from "react";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "@/lib/auth/provider";
 import { LangProvider } from "@/lib/i18n";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
@@ -97,6 +98,7 @@ function RootDocument() {
             </LangProvider>
           </QueryClientProvider>
         </AuthProvider>
+        <Analytics />
         <Scripts />
       </body>
     </html>
