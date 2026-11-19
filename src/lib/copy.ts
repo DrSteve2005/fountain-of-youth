@@ -101,7 +101,7 @@ const en: Dict = {
   "relative.h": "{n}h ago",
   "relative.d": "{n}d ago",
   "error.reach": "Could not reach the fountain. Try again.",
-  "know.kicker": "v1.5.1",
+  "know.kicker": "v1.5.2",
   "know.updated": "9 November 2026",
   "know.lead":
     "The fountain pays small sats. This is how not to lose bigger ones. It is not a reason to buy.",
@@ -146,7 +146,7 @@ const en: Dict = {
     "Any wallet that gives you a Lightning address: Phoenix, Wallet of Satoshi, Alby, Zeus, Blink, Muun (Lightning address if it offers one), and most others. On-chain Bitcoin addresses do not pay.",
   "faq.legacy.title": "What is Legacy?",
   "faq.legacy.body":
-    "The first 100 unique paid drinkers got a Legacy badge on the board. That set is closed. If you have the crown, it stays.",
+    "The first 100 unique paid drinkers of the original spring got a Legacy badge. That set is closed for good, and no new Legacy badges are awarded. Badges that survived the November 2026 rebuild stay on the board.",
   "faq.animals.title": "Shrimp, fish, dolphin, whale?",
   "faq.animals.body":
     "Lifetime paid sats on that hashed address. Under 1,000 is shrimp. 1,000–4,999 is fish. 5,000–9,999 is dolphin. 10,000+ is whale. It is a level, not a prize.",
@@ -247,7 +247,7 @@ const en: Dict = {
   "embed.copied": "Copied",
   "embed.json": "JSON",
   "embed.jsonHelp": "Public pot. CORS open. Cache about 20 seconds.",
-  "faq.kicker": "v1.5.1",
+  "faq.kicker": "v1.5.2",
   "faq.updated": "13 October 2026",
   "faq.maint.title": "The spring says maintenance",
   "faq.maint.body":
@@ -413,7 +413,7 @@ const es: Dict = {
   "relative.h": "hace {n}h",
   "relative.d": "hace {n}d",
   "error.reach": "No se pudo alcanzar la fuente. Prueba otra vez.",
-  "know.kicker": "v1.5.1",
+  "know.kicker": "v1.5.2",
   "know.updated": "9 de noviembre de 2026",
   "know.lead":
     "La fuente paga sats pequeños. Esto es cómo no perder los grandes. No es una razón para comprar.",
@@ -458,7 +458,7 @@ const es: Dict = {
     "Cualquier monedero que te dé una dirección Lightning: Phoenix, Wallet of Satoshi, Alby, Zeus, Blink, Muun (si ofrece dirección Lightning) y la mayoría. Las direcciones Bitcoin en cadena no pagan.",
   "faq.legacy.title": "¿Qué es Legacy?",
   "faq.legacy.body":
-    "Los primeros 100 bebedores únicos pagados tienen una insignia Legacy en el tablero. Ese cupo está cerrado. Si tienes la corona, se queda.",
+    "Los primeros 100 bebedores únicos pagados del manantial original recibieron una insignia Legacy. Ese cupo está cerrado para siempre y no se otorgan nuevas insignias Legacy. Las insignias que sobrevivieron a la reconstrucción de noviembre de 2026 se quedan en el tablero.",
   "faq.animals.title": "¿Camarón, pez, delfín, ballena?",
   "faq.animals.body":
     "Sats pagados de por vida en esa dirección hasheada. Bajo 1.000 es camarón. 1.000–4.999 es pez. 5.000–9.999 es delfín. 10.000+ es ballena. Es un nivel, no un premio.",
@@ -559,7 +559,7 @@ const es: Dict = {
   "embed.iframe": "Iframe",
   "embed.copy": "Copiar",
   "embed.copied": "Copiado",
-  "faq.kicker": "v1.5.1",
+  "faq.kicker": "v1.5.2",
   "faq.updated": "13 de octubre de 2026",
   "faq.maint.title": "El manantial dice mantenimiento",
   "faq.maint.body":

@@ -10,11 +10,43 @@ export const Route = createFileRoute("/changelog")({
 
 function ChangelogPage() {
   return (
-    <LegalPage kicker="the spring" title="Changelog" updated="9 November 2026">
+    <LegalPage kicker="the spring" title="Changelog" updated="20 November 2026">
       <p>
         What changed in public. No commit noise. The fountain is still a
         fountain.
       </p>
+
+      <LegalSection title="1.5.2 — 20 November 2026">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            The fountain does not pay places under sanctions. Visitors from
+            Russia and North Korea are turned away before any pour.
+          </li>
+          <li>
+            Connection limits are harder to dodge. The spring now trusts only
+            the address its host reports.
+          </li>
+          <li>
+            The daily jackpot can no longer be farmed. Late in the day, when
+            the regular pours had nearly run out, only a jackpot could still
+            get through, so people waited for it. Now the last regular pours
+            shrink to fit, and the spring rests for everyone at once, jackpot
+            included.
+          </li>
+          <li>
+            Legacy is closed for good. Nobody new earns it, and the FAQ and
+            Terms say so.
+          </li>
+          <li>
+            The dolphin mark is now a clean line icon, drawn the same way as
+            the fish and the whale.
+          </li>
+          <li>
+            Privacy and Terms updated. They name the host and the database,
+            and add the age rule and the sanctions rule.
+          </li>
+        </ul>
+      </LegalSection>
 
       <LegalSection title="1.5.1 — 9 November 2026">
         <ul className="list-disc space-y-1 pl-5">

@@ -66,7 +66,14 @@ export const SMALL_POT_FREE = 1_000;
 /** Ordinary (non-jackpot) sips: +1% per streak day, capped at +25%. */
 export const PAYOUT_BOOST_PER_DAY = 0.01;
 export const PAYOUT_BOOST_CAP = 0.25;
-export const LEGACY_LIMIT = 100;
+/**
+ * Legacy was the first 100 unique paid drinkers of the original spring. That
+ * set is closed for good: with a limit of 0 nobody new earns it, and the
+ * backfill in `ensureLegacySchema` awards nothing. Drinkers who already hold
+ * the mark (for example restored from an export) keep it, because it is stored
+ * on the drinker row. Do not raise this without changing the FAQ and Terms.
+ */
+export const LEGACY_LIMIT = 0;
 /** One badge. The address that drinks paid pour number 500. */
 export const POUR_500 = 500;
 /** One public badge. The address that drinks paid pour number 1,000. */
@@ -475,6 +482,38 @@ export function dailyPourBudget(potSats: number): number {
 /** The 30% day rests only once the live pot reaches SMALL_POT_FREE. */
 export function dailyCapApplies(potSats: number): boolean {
   return Math.floor(potSats) >= SMALL_POT_FREE;
+}
+
+/**
+ * Ordinary (non-jackpot) sats the spring may still pay today. Infinity while the
+ * 30% day is off. The jackpot does not count against this room.
+ */
+export function dayOrdinaryRoom(
+  balanceSats: number,
+  paidAllToday: number,
+  paidOrdinaryToday: number,
+): number {
+  if (!dailyCapApplies(balanceSats)) return Number.POSITIVE_INFINITY;
+  const budget = dailyPourBudget(balanceSats + paidAllToday);
+  return Math.max(0, budget - Math.max(0, paidOrdinaryToday));
+}
+
+/**
+ * The day stays open only while one whole minimum pour still fits. Below that
+ * the spring rests for everyone, jackpot included. If the jackpot stayed open
+ * after the room ran out, every ordinary pour would be refused and the only
+ * pour that could succeed would be the jackpot, so people would wait for it.
+ */
+export function dayHasRoom(room: number): boolean {
+  return room >= MIN_CLAIM_SATS;
+}
+
+/**
+ * Shrink an ordinary pour to what is left of the day instead of refusing it.
+ * Refusing would filter out ordinary rolls and leave only the jackpot.
+ */
+export function fitOrdinaryPour(amount: number, room: number): number {
+  return Math.max(0, Math.min(Math.floor(amount), Math.floor(room)));
 }
 
 export function jackpotBoostPct(streak: number): number {

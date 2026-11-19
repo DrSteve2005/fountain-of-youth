@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getSql, type Sql } from "@/lib/db";
+import { GEO_BLOCKED_MESSAGE, isBlockedCountry } from "@/lib/geo-block";
 import {
   COOLDOWN_MS,
   DEST_COOLDOWN_MS,
@@ -46,6 +47,10 @@ import {
   maskDestination,
   parseUsername,
   rollPour,
+  dayHasRoom,
+  dayOrdinaryRoom,
+  fitOrdinaryPour,
+  tierForAmount,
   utcDateString,
   utcDayStart,
   utcShift,
@@ -1280,11 +1285,30 @@ async function ensurePaidPoursOnly(sql: Sql): Promise<void> {
   `;
 }
 
+/**
+ * Visitor country from Vercel's `x-vercel-ip-country` header. Vercel sets this
+ * itself and overwrites anything a client sends. Returns "" when the header is
+ * missing (local dev), which the country block treats as "not blocked".
+ */
+async function clientCountry(): Promise<string> {
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    return (
+      getRequest()?.headers?.get("x-vercel-ip-country")?.trim().slice(0, 8) ?? ""
+    );
+  } catch {
+    return "";
+  }
+}
+
 async function clientIp(): Promise<string> {
   try {
     const { getRequest } = await import("@tanstack/react-start/server");
     const headers = getRequest()?.headers;
-    const cf = headers?.get("cf-connecting-ip");
+    // Only headers the host sets itself are trusted first. Vercel overwrites
+    // x-vercel-forwarded-for. cf-connecting-ip is NOT trusted unless the site
+    // really sits behind Cloudflare's proxy, because anyone can send it
+    // otherwise and get a fresh identity per request.
     const vercel = headers?.get("x-vercel-forwarded-for");
     const real = headers?.get("x-real-ip");
     const xff = headers?.get("x-forwarded-for");
@@ -1294,7 +1318,6 @@ async function clientIp(): Promise<string> {
       .filter(Boolean)
       .at(-1);
     return (
-      cf?.trim() ||
       vercel?.split(",")[0]?.trim() ||
       real?.trim() ||
       forwardedLast ||
@@ -1702,6 +1725,9 @@ export const createChallenge = createServerFn({ method: "POST" })
     }): Promise<
       { ok: true; id: string; difficulty: number } | { ok: false; error: string }
     > => {
+      if (isBlockedCountry(await clientCountry())) {
+        return { ok: false, error: GEO_BLOCKED_MESSAGE };
+      }
       const sql = await getSql();
       const { maintenance } = await loadFreeze(sql);
       if (maintenance) {
@@ -1763,6 +1789,10 @@ export const claimSats = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }): Promise<ClaimResult> => {
+    // Sanctions: refuse before any database work or payout.
+    if (isBlockedCountry(await clientCountry())) {
+      return { ok: false, error: GEO_BLOCKED_MESSAGE };
+    }
     if (data.honeypot && data.honeypot.trim().length > 0) {
       return {
         ok: false,
@@ -1920,10 +1950,10 @@ export const claimSats = createServerFn({ method: "POST" })
       `
       )[0]?.balance_sats ?? wallet.budgetSats,
     );
-    if (
-      dailyCapApplies(budget) &&
-      daily.ordinary >= dailyPourBudget(budget + daily.all)
-    ) {
+    // Ordinary room left today. The day closes for everyone, jackpot included,
+    // once less than one minimum pour is left (see dayHasRoom).
+    const dayRoom = dayOrdinaryRoom(budget, daily.all, daily.ordinary);
+    if (!dayHasRoom(dayRoom)) {
       return holdStreakForCap(
         sql,
         destHash,
@@ -1996,8 +2026,11 @@ export const claimSats = createServerFn({ method: "POST" })
     let amount =
       rolled.tier === "jackpot"
         ? Math.min(payable, advertisedJackpot)
-        : rolled.amount;
+        : fitOrdinaryPour(rolled.amount, dayRoom);
     let tier = rolled.tier;
+    if (tier !== "jackpot" && amount < rolled.amount) {
+      tier = tierForAmount(amount, payable);
+    }
     const mask = maskDestination(data.destination, "lightning");
     const destLocked = await takeDayLock(sql, "dest", destHash, drinkUtc);
     if (!destLocked) {
@@ -2023,8 +2056,11 @@ export const claimSats = createServerFn({ method: "POST" })
       holdsJackpot = await takeDayLock(sql, "jackpot", "day", drinkUtc, 1);
       if (!holdsJackpot) {
         rolled = rollPour(payable, streak, false, farm.fresh);
-        amount = rolled.amount;
-        tier = rolled.tier;
+        amount = fitOrdinaryPour(rolled.amount, dayRoom);
+        tier =
+          amount < rolled.amount
+            ? tierForAmount(amount, payable)
+            : rolled.tier;
       }
     }
     let bolt11: string;

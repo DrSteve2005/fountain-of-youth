@@ -11,6 +11,76 @@ when `DATABASE_URL` is set. Boot also runs idempotent schema guards
 (`ensureGraceSchema`, `ensureHallowSchema`, `ensureFillBlockSchema`) that add
 missing columns and run one-time backfills gated by flags on `faucet_pool`.
 
+## [1.5.2] - 2026-11-20
+
+### Added
+- Country block: `src/lib/geo-block.ts` (`BLOCKED_COUNTRIES`, `isBlockedCountry`,
+  `GEO_BLOCKED_MESSAGE`) with tests in `geo-block.test.ts`. Defaults to `RU`
+  and `KP`. `createChallenge` and `claimSats` call `clientCountry()` (the
+  `x-vercel-ip-country` header, set by Vercel) and refuse before any database
+  work or payout. A missing header is treated as not blocked, so local dev works.
+
+### Fixed
+- End-of-day jackpot window. `claimSats` rolled a pour, and `reservePour`
+  refused any non-jackpot pour that would push the day's ordinary total past
+  `dailyPourBudget`, while a jackpot skipped that check. When less than the
+  smallest ordinary pour was left, every ordinary roll was refused and the only
+  roll that could succeed was the jackpot. The progress bar made the window
+  visible, and refused attempts cost only a puzzle, so people waited and
+  retried. Now `claimSats` computes `dayOrdinaryRoom` up front, rests the day
+  for everyone once less than `MIN_CLAIM_SATS` is left (`dayHasRoom`), and
+  shrinks an ordinary pour to the room left (`fitOrdinaryPour`) instead of
+  refusing it, relabelling its tier with `tierForAmount`. The jackpot roll is
+  unchanged. `reservePour` still enforces the cap as a race backstop. Covered
+  by `lib/faucet-day.test.ts`.
+
+### Changed
+- Legacy closed for good: `LEGACY_LIMIT` in `lib/faucet.ts` is now `0` (was
+  `100`). The award in `claimSats` (`legacy_awarded < LEGACY_LIMIT`) never
+  matches, and the backfill in `ensureLegacySchema` has no slots left, so a
+  fresh database cannot hand the badge out again. Existing `is_legacy` rows
+  are untouched and stay on the board. `lib/legacy-closed.test.ts` guards the
+  value. FAQ (English and Spanish, `faq.legacy.body`) and Terms reworded.
+- Dolphin tier icon (`DolphinIcon` in `components/leaderboard.tsx`) replaced
+  with a 24x24 stroke icon (six paths, `stroke="currentColor"`, width 2, round
+  caps and joins). It renders through `AnimalMark` like the Fish and Whale
+  icons, so size and the circle behind it are unchanged. Supersedes the
+  1.5.1 pixel-art dolphin.
+- `clientIp()` no longer trusts `cf-connecting-ip`. With DNS-only Cloudflare
+  anyone could send that header and get a new identity per request, which
+  weakened the per-IP limits. Order is now `x-vercel-forwarded-for`,
+  `x-real-ip`, then the last `x-forwarded-for` entry. If the site is ever
+  proxied through Cloudflare, revisit this.
+- Privacy and Terms (effective 2026-11-20): name Vercel, Neon and Cloudflare,
+  describe the country check, add an 18+ rule, the sanctions rule and a VPN
+  clause. Version labels bumped to v1.5.2.
+
+## [1.5.1] - 2026-11-09
+
+### Added
+- "Good to know" page (`routes/know.tsx`, `know.*` keys in `lib/copy.ts`, English
+  and Spanish) for people new to bitcoin: do not leave a stack on an exchange or
+  in a hot wallet, and Lightning here is spending money, not a vault. Linked
+  from the footer.
+
+### Fixed
+- Wallet host failures are no longer reported as a bad address
+  (`lib/lightning-body.ts`). `parseLightningBody` returns `undefined` for a
+  non-JSON body such as an HTML error page, and `invoiceFailureMessage` maps
+  that to `INVOICE_PAGE` ("That wallet sent a page instead of an invoice. The
+  address was not rejected."). `lnurlProblem` maps LUD-06 `ERROR` replies:
+  an unknown user becomes `ADDRESS_MISSING`, an amount complaint gets its own
+  message, and anything else becomes `INVOICE_SOFT`.
+- Payout failures say what happened (`payFailureMessage`). An empty or
+  unreachable spring wallet returns `WALLET_LOW` or `PAY_OFFLINE`, and a slow
+  wallet returns `PAY_SLOW`. Each message states that the visitor's address is
+  fine. Covered by `lib/lightning-body.test.ts`.
+- Falling coins in `components/faucet-well.tsx` (`.drip-coin` in `styles.css`)
+  animate again. After the Hallow season closed they sat still at the spout and
+  now drop into the basin.
+- The dolphin tier mark in `components/leaderboard.tsx` (`DolphinIcon`) now
+  draws a dolphin: beak, dorsal fin and tail.
+
 ## [1.5.0] - 2026-10-24
 
 ### Added

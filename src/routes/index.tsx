@@ -798,7 +798,7 @@ function Home() {
             to="/changelog"
             className="text-gold underline-offset-2 hover:underline"
           >
-            v1.5.1
+            v1.5.2
           </Link>
           . {t("footer.blurb")}{" "}
           <button
