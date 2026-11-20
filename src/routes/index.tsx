@@ -39,6 +39,7 @@ import {
 import {
   COOLDOWN_MS,
   KEEPER_SESSION_KEY,
+  clearRefCode,
   formatSats,
   getOrCreateClaimToken,
   hallowNightsLeft,
@@ -46,6 +47,7 @@ import {
   refillMoment,
   formatRefillWait,
   donorLore,
+  readRefCode,
   type ClaimOk,
   type DepositInvoice,
   type FaucetState,
@@ -275,6 +277,7 @@ function Home() {
             nonce,
             honeypot,
             username,
+            ref: readRefCode() ?? undefined,
           },
         });
       } catch (err) {
@@ -295,6 +298,8 @@ function Home() {
     },
     onSuccess: (result) => {
       if (result.ok) {
+        // The invite only counts on an address's first drink. Done either way.
+        clearRefCode();
         setClaimError(null);
         setSuccess(result);
         setCooldownMs(COOLDOWN_MS);
@@ -751,6 +756,7 @@ function Home() {
           <Leaderboard
             bySats={state?.boardSats ?? []}
             byStreak={state?.boardStreak ?? []}
+            byGuides={state?.boardGuides ?? []}
             donors={state?.boardDonors ?? []}
             maintenance={maintenance}
             keeper={isKeeper}
@@ -798,7 +804,7 @@ function Home() {
             to="/changelog"
             className="text-gold underline-offset-2 hover:underline"
           >
-            v1.5.2
+            v1.5.3
           </Link>
           . {t("footer.blurb")}{" "}
           <button

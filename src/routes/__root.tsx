@@ -5,12 +5,13 @@ import {
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "@/lib/auth/provider";
 import { LangProvider } from "@/lib/i18n";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { storeRefCode } from "@/lib/faucet";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Fountain of Youth";
@@ -74,6 +75,29 @@ export const Route = createRootRoute({
   component: RootDocument,
 });
 
+/**
+ * Keep an invite code from ?ref= on this device, then take it out of the
+ * address bar so the visitor does not pass someone else's link along.
+ */
+function RefCapture() {
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has("ref")) return;
+      storeRefCode(url.searchParams.get("ref"));
+      url.searchParams.delete("ref");
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  return null;
+}
+
 function RootDocument() {
   const [queryClient] = useState(makeQueryClient);
   return (
@@ -83,6 +107,7 @@ function RootDocument() {
       </head>
       <body className="bg-bg text-fg">
         <PreviewHostBridge />
+        <RefCapture />
         <AuthProvider>
           <QueryClientProvider client={queryClient}>
             <LangProvider>

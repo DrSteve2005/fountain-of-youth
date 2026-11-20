@@ -29,6 +29,11 @@ export function farmPuzzleBits(base: number, siblings: number, fresh: boolean): 
 }
 export const CLAIM_TOKEN_KEY = "fountain-claim-token";
 export const USERNAME_KEY = "fountain-board-name";
+/** The invite code a visitor arrived with. Kept on the device until their first pour lands. */
+export const REF_KEY = "fountain-ref";
+/** An invite link stays good on a device for this long. */
+export const REF_TTL_MS = 30 * 86_400_000;
+export const SITE_ORIGIN = "https://getfountainofyouth.net";
 export const KEEPER_SESSION_KEY = "fountain-keeper-phrase";
 export const FEEDBACK_EMAIL = "fountainofyouth.feedback@gmail.com";
 export const LANG_KEY = "fountain-lang";
@@ -90,6 +95,7 @@ export type PourTier = "common" | "uncommon" | "rare" | "jackpot";
 export type WalletKind = "nwc" | "lnbits";
 export type AnimalTier = "shrimp" | "fish" | "dolphin" | "whale";
 export type DonorTier = "drop" | "stream" | "flood";
+export type GuideTier = "scout" | "guide" | "pathfinder" | "cartographer";
 
 export type FaucetState = {
   balance: number;
@@ -103,6 +109,8 @@ export type FaucetState = {
   jackpotSats: number;
   boardSats: LeaderEntry[];
   boardStreak: LeaderEntry[];
+  /** Most people brought to a first paid drink. */
+  boardGuides: LeaderEntry[];
   boardDonors: DonorEntry[];
   recentFills: RecentFill[];
   tipLnAddress: string | null;
@@ -137,6 +145,8 @@ export type LeaderEntry = {
   pour1000: boolean;
   graceToken: boolean;
   hallow: boolean;
+  /** People who took their first paid drink through this drinker's invite link. */
+  referrals: number;
 };
 
 export type DonorEntry = {
@@ -170,6 +180,9 @@ export type DrinkerPreview = {
   hallow: boolean;
   /** Paid October days in a row, still alive. Not the lifetime streak. */
   hallowDays: number;
+  referrals: number;
+  /** Random invite code for this address. Not derived from the address. */
+  refCode: string | null;
 };
 
 export type ClaimOk = {
@@ -196,6 +209,10 @@ export type ClaimOk = {
   earnedGrace: boolean;
   hallow: boolean;
   earnedHallow: boolean;
+  referrals: number;
+  refCode: string | null;
+  /** This first drink came through an invite link and counted for the guide. */
+  invited: boolean;
 };
 
 export type ClaimFail = {
@@ -470,6 +487,94 @@ export function donorLabel(tier: DonorTier): string {
       return "Stream";
     default:
       return "Drop";
+  }
+}
+
+/**
+ * Guide badge. One level per threshold of people who took their first paid
+ * drink through your invite link. Cosmetic only: it does not change the sip,
+ * the jackpot odds, or any limit.
+ */
+export const GUIDE_LEVELS: readonly { tier: GuideTier; min: number }[] = [
+  { tier: "scout", min: 1 },
+  { tier: "guide", min: 3 },
+  { tier: "pathfinder", min: 10 },
+  { tier: "cartographer", min: 21 },
+] as const;
+
+export function guideTier(referrals: number): GuideTier | null {
+  const n = Math.max(0, Math.floor(referrals));
+  let tier: GuideTier | null = null;
+  for (const level of GUIDE_LEVELS) {
+    if (n >= level.min) tier = level.tier;
+  }
+  return tier;
+}
+
+/** The next level up and how many more invites it takes. Null at the top. */
+export function nextGuideLevel(
+  referrals: number,
+): { tier: GuideTier; min: number; left: number } | null {
+  const n = Math.max(0, Math.floor(referrals));
+  const next = GUIDE_LEVELS.find((level) => level.min > n);
+  return next ? { tier: next.tier, min: next.min, left: next.min - n } : null;
+}
+
+/** No 0/o, 1/l/i: codes get read aloud and typed from screenshots. */
+const REF_CODE_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
+export const REF_CODE_LENGTH = 8;
+const REF_CODE_RE = new RegExp(`^[${REF_CODE_ALPHABET}]{${REF_CODE_LENGTH}}$`);
+
+export function makeRefCode(bytes: Uint8Array): string {
+  let out = "";
+  for (let i = 0; i < REF_CODE_LENGTH; i += 1) {
+    out += REF_CODE_ALPHABET[(bytes[i] ?? 0) % REF_CODE_ALPHABET.length];
+  }
+  return out;
+}
+
+export function parseRefCode(raw: string | null | undefined): string | null {
+  const s = (raw ?? "").trim().toLowerCase();
+  return REF_CODE_RE.test(s) ? s : null;
+}
+
+export function inviteUrl(code: string, origin = SITE_ORIGIN): string {
+  return `${origin.replace(/\/+$/, "")}/?ref=${code}`;
+}
+
+/** Remember an invite code from the URL. The newest link wins. */
+export function storeRefCode(raw: string | null | undefined, now = Date.now()): void {
+  const code = parseRefCode(raw);
+  if (!code) return;
+  try {
+    localStorage.setItem(REF_KEY, JSON.stringify({ code, at: now }));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function readRefCode(now = Date.now()): string | null {
+  try {
+    const raw = localStorage.getItem(REF_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { code?: unknown; at?: unknown };
+    const code = parseRefCode(typeof parsed.code === "string" ? parsed.code : null);
+    const at = typeof parsed.at === "number" ? parsed.at : 0;
+    if (!code || now - at > REF_TTL_MS) {
+      localStorage.removeItem(REF_KEY);
+      return null;
+    }
+    return code;
+  } catch {
+    return null;
+  }
+}
+
+export function clearRefCode(): void {
+  try {
+    localStorage.removeItem(REF_KEY);
+  } catch {
+    /* ignore */
   }
 }
 
