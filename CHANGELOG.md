@@ -11,6 +11,62 @@ when `DATABASE_URL` is set. Boot also runs idempotent schema guards
 (`ensureGraceSchema`, `ensureHallowSchema`, `ensureFillBlockSchema`) that add
 missing columns and run one-time backfills gated by flags on `faucet_pool`.
 
+## [1.5.3] - 2026-11-21
+
+### Added
+- Guide badge (invite links). Run migration `0026_referrals.sql` (or let boot
+  do it: `ensureReferralSchema` runs the same DDL once per server instance).
+  - Schema: `faucet_drinkers.ref_code` (unique, nullable) and a new
+    `faucet_referrals (referred_hash primary key, referrer_hash, created_at)`
+    table with an index on `referrer_hash`. The primary key means an address
+    counts for one guide, once.
+  - Codes: `makeRefCode` / `parseRefCode` in `lib/faucet.ts`. Eight characters
+    from a 31-symbol alphabet with no `0`/`o`/`1`/`l`/`i`, from
+    `crypto.randomBytes`. Not derived from the address. Minted lazily by
+    `ensureRefCode` in `lookupDrinker` and after a paid `claimSats`; a unique
+    index collision rolls a new code (up to four tries).
+  - Credit: `claimSats` takes an optional `ref`. `recordReferral` runs only
+    when the address had no `faucet_drinkers` row before this pour (its first
+    paid drink), and refuses an unknown code, a self-referral, or a drink from
+    an `ip_hash` the guide has a paid claim on. It runs after the payout and
+    inside a `try`, so a bookkeeping failure never turns a paid pour into an
+    error.
+  - Levels: `GUIDE_LEVELS`, `guideTier`, `nextGuideLevel`. Scout 1, Guide 3,
+    Pathfinder 10, Cartographer 21. Cosmetic only: no change to `rollPour`,
+    limits or odds.
+  - Counts: `referral_count` subquery on the board queries in `readBoards` and
+    in `lookupDrinker`. New fields `LeaderEntry.referrals`,
+    `DrinkerPreview.referrals` / `refCode`, `ClaimOk.referrals` / `refCode` /
+    `invited`.
+  - Client: `RefCapture` in `routes/__root.tsx` stores `?ref=` in
+    `localStorage` (`REF_KEY`, 30-day `REF_TTL_MS`) and strips it from the URL
+    with `history.replaceState`. `index.tsx` sends it with the claim and clears
+    it after any successful pour.
+  - UI: `GuideMark` / `GuideIcon` in `components/leaderboard.tsx` (lucide
+    Footprints, Signpost, Compass, Map), rendered through `Marks`.
+    `InviteLink` in `components/claim-card.tsx`, shown in the drink card once
+    an address is found and in the pour popup. Links always use
+    `SITE_ORIGIN`, never a preview host.
+  - Guides board: a fourth tab in `components/leaderboard.tsx`, between
+    Streaks and Basin. `readBoards` returns `boardGuides` (new
+    `FaucetState.boardGuides`): top 10 referrers from `faucet_referrals`
+    grouped by `referrer_hash`, ties to whoever reached the count first
+    (`max(created_at)` ascending). Tab labels drop to `text-xs` below `sm` so
+    four fit on a phone.
+  - Drink card and return-pour popup show `InviteLink compact` (one line);
+    the full box is only on the first pour.
+  - Copy: `guide.*`, `guides.*`, `board.guides` and `faq.guide.*` keys,
+    English and Spanish. Tests in `lib/referral.test.ts`.
+
+### Changed
+- Privacy and Terms (effective 2026-11-21): describe the invite code, the
+  stored referral link and the local-storage code; Terms add the Guide badge
+  rule. Version labels bumped to v1.5.3.
+
+### Fixed
+- Terms said a connection gets eight paid drinks per UTC day. The code
+  (`IP_DRINKS_PER_DAY`) allows two. The Terms now say two.
+
 ## [1.5.2] - 2026-11-20
 
 ### Added

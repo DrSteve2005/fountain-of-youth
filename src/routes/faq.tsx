@@ -58,6 +58,10 @@ function FaqPage() {
         </LegalSection>
       ) : null}
 
+      <LegalSection title={t("faq.guide.title")}>
+        <p>{t("faq.guide.body")}</p>
+      </LegalSection>
+
       <LegalSection title={t("faq.legacy.title")}>
         <p>{t("faq.legacy.body")}</p>
       </LegalSection>

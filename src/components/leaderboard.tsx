@@ -1,11 +1,24 @@
 import { useState } from "react";
-import { Fish, Flame, Shrimp, Crown, Medal, Shield } from "lucide-react";
+import {
+  Compass,
+  Crown,
+  Fish,
+  Flame,
+  Footprints,
+  Map as MapIcon,
+  Medal,
+  Shield,
+  Shrimp,
+  Signpost,
+} from "lucide-react";
 import { Donorboard } from "@/components/donorboard";
 import {
   boardLabel,
   formatSats,
+  guideTier,
   type AnimalTier,
   type DonorEntry,
+  type GuideTier,
   type LeaderEntry,
 } from "@/lib/faucet";
 import { useI18n } from "@/lib/i18n";
@@ -105,21 +118,63 @@ export function HallowMark() {
   );
 }
 
+const GUIDE_ICONS: Record<GuideTier, typeof Compass> = {
+  scout: Footprints,
+  guide: Signpost,
+  pathfinder: Compass,
+  cartographer: MapIcon,
+};
+
+export function GuideIcon({
+  tier,
+  className,
+}: {
+  tier: GuideTier;
+  className?: string;
+}) {
+  const Icon = GUIDE_ICONS[tier];
+  return <Icon className={cn("size-3.5", className)} aria-hidden />;
+}
+
+/** Guide badge: one icon per level, the count in the label. */
+export function GuideMark({ referrals }: { referrals: number }) {
+  const { t } = useI18n();
+  const tier = guideTier(referrals);
+  if (!tier) return null;
+  const label = t(referrals === 1 ? "guide.markLabelOne" : "guide.markLabel", {
+    tier: t(`guide.${tier}`),
+    n: referrals,
+  });
+  return (
+    <span
+      className="inline-flex shrink-0 items-center text-gold"
+      role="img"
+      aria-label={label}
+      title={label}
+    >
+      <GuideIcon tier={tier} />
+    </span>
+  );
+}
+
 export function Marks({
   legacy,
   legacyRank,
   pour500,
   pour1000,
   hallow,
+  referrals = 0,
 }: {
   legacy?: boolean;
   legacyRank?: number | null;
   pour500?: boolean;
   pour1000?: boolean;
   hallow?: boolean;
+  referrals?: number;
 }) {
   const { t } = useI18n();
-  if (!legacy && !pour500 && !pour1000 && !hallow) return null;
+  const guide = guideTier(referrals) !== null;
+  if (!legacy && !pour500 && !pour1000 && !hallow && !guide) return null;
   const legacyLabel = legacyRank
     ? `${t("claim.legacy")} #${legacyRank}`
     : t("claim.legacy");
@@ -141,6 +196,7 @@ export function Marks({
         </span>
       ) : null}
       {hallow ? <HallowMark /> : null}
+      {guide ? <GuideMark referrals={referrals} /> : null}
     </span>
   );
 }
@@ -172,6 +228,7 @@ export function AnimalBadge({
 export function Leaderboard({
   bySats,
   byStreak,
+  byGuides = [],
   donors = [],
   maintenance = false,
   keeper = false,
@@ -179,24 +236,33 @@ export function Leaderboard({
 }: {
   bySats: LeaderEntry[];
   byStreak: LeaderEntry[];
+  byGuides?: LeaderEntry[];
   donors?: DonorEntry[];
   maintenance?: boolean;
   keeper?: boolean;
   onHideDonor?: (mask: string) => void;
 }) {
   const { t, locale } = useI18n();
-  const [tab, setTab] = useState<"sats" | "streak" | "basin">("sats");
-  const rows = tab === "sats" ? bySats : byStreak;
+  const [tab, setTab] = useState<"sats" | "streak" | "guides" | "basin">("sats");
+  const rows = tab === "sats" ? bySats : tab === "guides" ? byGuides : byStreak;
 
   return (
     <section className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight text-fg">
-            {tab === "basin" ? t("basin.title") : t("board.title")}
+            {tab === "basin"
+              ? t("basin.title")
+              : tab === "guides"
+                ? t("guides.title")
+                : t("board.title")}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {tab === "basin" ? t("basin.body") : t("board.body")}
+            {tab === "basin"
+              ? t("basin.body")
+              : tab === "guides"
+                ? t("guides.body")
+                : t("board.body")}
           </p>
         </div>
       </div>
@@ -206,6 +272,7 @@ export function Leaderboard({
           [
             { id: "sats" as const, label: t("board.leaders") },
             { id: "streak" as const, label: t("board.streaks") },
+            { id: "guides" as const, label: t("board.guides") },
             { id: "basin" as const, label: t("basin.tab") },
           ] as const
         ).map((item) => (
@@ -214,7 +281,7 @@ export function Leaderboard({
             type="button"
             onClick={() => setTab(item.id)}
             className={cn(
-              "h-9 flex-1 rounded-md text-sm font-medium transition-colors",
+              "h-9 min-w-0 flex-1 truncate rounded-md px-1 text-xs font-medium transition-colors sm:text-sm",
               tab === item.id
                 ? "bg-gold text-bg"
                 : "text-muted hover:text-fg",
@@ -233,7 +300,9 @@ export function Leaderboard({
           onHide={onHideDonor}
         />
       ) : rows.length === 0 ? (
-        <p className="mt-6 text-sm text-subtle">{t("board.empty")}</p>
+        <p className="mt-6 text-sm text-subtle">
+          {tab === "guides" ? t("guides.empty") : t("board.empty")}
+        </p>
       ) : (
         <ol className="mt-4 divide-y divide-line">
           {rows.map((row, index) => (
@@ -244,14 +313,20 @@ export function Leaderboard({
               <span
                 className={cn(
                   "flex size-9 shrink-0 items-center justify-center rounded-full",
-                  row.tier === "whale"
-                    ? "bg-gold text-bg"
-                    : row.tier === "dolphin" || row.tier === "fish"
-                      ? "bg-gold/15 text-gold"
-                      : "bg-surface-2 text-muted",
+                  tab === "guides"
+                    ? "bg-gold/15 text-gold"
+                    : row.tier === "whale"
+                      ? "bg-gold text-bg"
+                      : row.tier === "dolphin" || row.tier === "fish"
+                        ? "bg-gold/15 text-gold"
+                        : "bg-surface-2 text-muted",
                 )}
               >
-                <AnimalMark tier={row.tier} />
+                {tab === "guides" && guideTier(row.referrals) ? (
+                  <GuideIcon tier={guideTier(row.referrals)!} className="size-4" />
+                ) : (
+                  <AnimalMark tier={row.tier} />
+                )}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="flex min-w-0 items-center gap-1.5 text-sm text-fg">
@@ -269,6 +344,7 @@ export function Leaderboard({
                     pour500={row.pour500}
                     pour1000={row.pour1000}
                     hallow={row.hallow}
+                    referrals={tab === "guides" ? 0 : row.referrals}
                   />
                 </p>
                 <p className="truncate text-xs text-subtle">
@@ -279,7 +355,18 @@ export function Leaderboard({
                 </p>
               </div>
               <div className="text-right">
-                {tab === "sats" ? (
+                {tab === "guides" ? (
+                  <>
+                    <p className="font-mono text-sm font-medium tabular-nums text-gold">
+                      {row.referrals === 1
+                        ? t("guides.countOne")
+                        : t("guides.count", { n: row.referrals })}
+                    </p>
+                    <p className="text-xs text-subtle">
+                      {t(`guide.${guideTier(row.referrals) ?? "scout"}`)}
+                    </p>
+                  </>
+                ) : tab === "sats" ? (
                   <>
                     <p className="font-mono text-sm font-medium tabular-nums text-gold">
                       {formatSats(row.totalSats, locale)}
@@ -312,7 +399,11 @@ export function Leaderboard({
 
       {tab === "basin" ? null : (
         <p className="mt-4 text-xs leading-normal text-subtle">
-          {maintenance ? t("board.frozen") : t("board.legend")}
+          {tab === "guides"
+            ? t("guides.legend")
+            : maintenance
+              ? t("board.frozen")
+              : t("board.legend")}
         </p>
       )}
     </section>

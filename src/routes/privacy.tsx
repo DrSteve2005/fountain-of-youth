@@ -12,9 +12,9 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <LegalPage
-      kicker="v1.5.2"
+      kicker="v1.5.3"
       title="Privacy"
-      updated="Effective 20 November 2026"
+      updated="Effective 21 November 2026"
     >
       <p>
         Fountain of Youth has no accounts and no login. We do not sell data. A
@@ -69,6 +69,19 @@ function PrivacyPage() {
             A random claim token in your browser’s local storage, so the same
             device is not treated as a new person every click.
           </li>
+          <li>
+            A random invite code on your drinker row, for the Guide badge. It
+            is not made from your address. Anyone who types your Lightning
+            address into the drink form can see your invite link, the same way
+            they can see your streak.
+          </li>
+          <li>
+            If you arrive through someone’s invite link, its code is kept in
+            your browser’s local storage for up to 30 days and removed after
+            your first paid drink. When that drink is paid, we store a link
+            between the hash of your Lightning address and the hash of theirs,
+            so their badge counts you. They see a number, not who you are.
+          </li>
         </ul>
         <p>
           We do not ask for a name, email, phone, government ID, or on-chain
@@ -89,9 +102,10 @@ function PrivacyPage() {
 
       <LegalSection title="Why we process it">
         <p>
-          To pay you, to stop bots from draining the spring, to keep streaks
-          and Legacy honest, and to run the public board. Legal bases: the
-          pour you asked for, and legitimate interest in not being farmed.
+          To pay you, to stop bots from draining the spring, to keep streaks,
+          Legacy, and the Guide badge honest, and to run the public board.
+          Legal bases: the pour you asked for, and legitimate interest in not
+          being farmed.
         </p>
         <p>
           Each drink also checks your country, which the host works out from
@@ -130,8 +144,8 @@ function PrivacyPage() {
 
       <LegalSection title="How long">
         <p>
-          Challenge rows are short-lived. Paid pours, fills, hashes, masks, and
-          streaks stay while the fountain runs. If the spring is shut down, the
+          Challenge rows are short-lived. Paid pours, fills, hashes, masks,
+          streaks, and invite links stay while the fountain runs. If the spring is shut down, the
           keeper deletes or archives the database.
         </p>
       </LegalSection>

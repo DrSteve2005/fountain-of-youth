@@ -1,7 +1,21 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Flame, LoaderCircle, Shield, Zap } from "lucide-react";
-import { AnimalBadge, JackOLantern, Marks } from "@/components/leaderboard";
+import {
+  Check,
+  Clock,
+  Copy,
+  Flame,
+  Link2,
+  LoaderCircle,
+  Shield,
+  Zap,
+} from "lucide-react";
+import {
+  AnimalBadge,
+  GuideIcon,
+  JackOLantern,
+  Marks,
+} from "@/components/leaderboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { lookupDrinker } from "@/lib/faucet-api";
@@ -11,9 +25,12 @@ import {
   boardLabel,
   classifyDestination,
   formatSats,
+  guideTier,
   HALLOW_STREAK_DAYS,
+  inviteUrl,
   isClaimableLightning,
   isHallowSeason,
+  nextGuideLevel,
   type ClaimOk,
 } from "@/lib/faucet";
 import { addressFieldInvalid } from "@/lib/copy";
@@ -33,6 +50,127 @@ type ClaimCardProps = {
   onCancelPow: () => void;
   onClaim: (destination: string, honeypot: string, username: string) => void;
 };
+
+/**
+ * The drinker's own invite link, with how far the Guide badge has come.
+ * Shown only once an address has drunk, because the code lives on its row.
+ * `compact` is one line for the everyday drink card and pour popup; the full
+ * box is for the first pour, when the link is new and needs explaining.
+ */
+export function InviteLink({
+  code,
+  referrals,
+  compact = false,
+}: {
+  code: string;
+  referrals: number;
+  compact?: boolean;
+}) {
+  const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = window.setTimeout(() => setCopied(false), 1800);
+    return () => window.clearTimeout(id);
+  }, [copied]);
+
+  // Always the real domain, so a link copied on a preview build still works.
+  const url = inviteUrl(code);
+  const tier = guideTier(referrals);
+  const next = nextGuideLevel(referrals);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+    } catch {
+      /* clipboard blocked: the link is still selectable */
+    }
+  }
+
+  if (compact) {
+    const line =
+      referrals === 0
+        ? t("guide.lineNone")
+        : next
+          ? t(referrals === 1 ? "guide.lineOne" : "guide.line", {
+              n: referrals,
+              left: next.left,
+              tier: t(`guide.${next.tier}`),
+            })
+          : t("guide.lineTop", { n: referrals });
+    return (
+      <p className="flex items-center gap-1.5 text-xs text-subtle">
+        <span className="inline-flex shrink-0 text-gold">
+          {tier ? (
+            <GuideIcon tier={tier} />
+          ) : (
+            <Link2 className="size-3.5" aria-hidden />
+          )}
+        </span>
+        <span className="min-w-0 truncate">{line}</span>
+        <button
+          type="button"
+          onClick={() => void copy()}
+          title={url}
+          aria-label={t("guide.copyAria")}
+          className="ml-auto inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 font-medium text-gold transition-colors hover:bg-surface-2"
+        >
+          {copied ? (
+            <Check className="size-3.5" aria-hidden />
+          ) : (
+            <Copy className="size-3.5" aria-hidden />
+          )}
+          {copied ? t("embed.copied") : t("guide.copyLink")}
+        </button>
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5 rounded-lg bg-surface-2 px-3 py-2.5">
+      <p className="flex items-center justify-between gap-2 text-xs font-medium tracking-wide text-muted uppercase">
+        <span>{t("guide.yourLink")}</span>
+        {tier ? (
+          <span className="inline-flex items-center gap-1 normal-case tracking-normal text-gold">
+            <GuideIcon tier={tier} />
+            {t(`guide.${tier}`)}
+          </span>
+        ) : null}
+      </p>
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 truncate font-mono text-sm text-fg select-all">
+          {url}
+        </span>
+        <button
+          type="button"
+          onClick={() => void copy()}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gold transition-colors hover:bg-surface"
+          aria-label={t("guide.copyAria")}
+        >
+          {copied ? (
+            <Check className="size-3.5" aria-hidden />
+          ) : (
+            <Copy className="size-3.5" aria-hidden />
+          )}
+          {copied ? t("embed.copied") : t("embed.copy")}
+        </button>
+      </div>
+      <p className="text-xs leading-normal text-subtle">
+        {referrals === 0
+          ? t("guide.none")
+          : next
+            ? t(referrals === 1 ? "guide.progressOne" : "guide.progress", {
+                n: referrals,
+                left: next.left,
+                tier: t(`guide.${next.tier}`),
+              })
+            : t("guide.top", { n: referrals })}
+      </p>
+    </div>
+  );
+}
 
 export function ClaimCard({
   disabled,
@@ -212,6 +350,7 @@ export function ClaimCard({
                 pour500={drinker.pour500}
                 pour1000={drinker.pour1000}
                 hallow={drinker.hallow}
+                referrals={drinker.referrals}
               />
               {isHallowSeason() &&
               !drinker.hallow &&
@@ -228,6 +367,13 @@ export function ClaimCard({
                 <Shield className="size-3.5" aria-hidden />
                 {t("claim.graceReady")}
               </p>
+            ) : null}
+            {drinker.refCode ? (
+              <InviteLink
+                code={drinker.refCode}
+                referrals={drinker.referrals}
+                compact
+              />
             ) : null}
           </div>
         ) : claimable && drinker && !drinker.found ? (
@@ -397,6 +543,7 @@ export function PourSuccess({
             pour500={pour.pour500}
             pour1000={pour.pour1000}
             hallow={pour.hallow}
+            referrals={pour.referrals}
           />
           {pour.payoutBoostPct > 0 ? (
             <span className="text-xs text-subtle">
@@ -439,6 +586,18 @@ export function PourSuccess({
             <JackOLantern className="size-4" />
             {t("pour.hallow")}
           </p>
+        ) : null}
+        {pour.invited ? (
+          <p className="mt-2 text-sm text-gold">{t("guide.invitedLine")}</p>
+        ) : null}
+        {pour.refCode ? (
+          <div className={pour.drinks > 1 ? "mt-3" : "mt-4"}>
+            <InviteLink
+              code={pour.refCode}
+              referrals={pour.referrals}
+              compact={pour.drinks > 1}
+            />
+          </div>
         ) : null}
         <Button className="mt-4 w-full" onClick={onDismiss}>
           {t("pour.close")}

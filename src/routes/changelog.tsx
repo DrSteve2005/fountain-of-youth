@@ -10,11 +10,38 @@ export const Route = createFileRoute("/changelog")({
 
 function ChangelogPage() {
   return (
-    <LegalPage kicker="the spring" title="Changelog" updated="20 November 2026">
+    <LegalPage kicker="the spring" title="Changelog" updated="21 November 2026">
       <p>
         What changed in public. No commit noise. The fountain is still a
         fountain.
       </p>
+
+      <LegalSection title="1.5.3 — 21 November 2026">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Invite links. After your first paid drink, the drink card shows a
+            link of your own. Paste your address to find it again.
+          </li>
+          <li>
+            The Guide badge grows with the people you bring. Scout at one,
+            Guide at three, Pathfinder at ten, Cartographer at twenty-one. It
+            sits beside your name on the board.
+          </li>
+          <li>
+            A Guides tab on the board shows who brought the most people to the
+            spring.
+          </li>
+          <li>
+            Only a first paid drink counts, once, for one guide. A drink from a
+            connection you drank from yourself does not. The badge pays
+            nothing extra and does not change the odds.
+          </li>
+          <li>
+            The link carries a random code, not your address. Privacy and
+            Terms say what is stored.
+          </li>
+        </ul>
+      </LegalSection>
 
       <LegalSection title="1.5.2 — 20 November 2026">
         <ul className="list-disc space-y-1 pl-5">

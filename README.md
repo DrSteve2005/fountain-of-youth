@@ -14,6 +14,7 @@ Not a mixer, not a bank, not a business. Just sats for people who want to try Li
 - A random pour. Ordinary sips grow with the size of the pot. The jackpot is 10% of the pot and gets rarer as the prize grows. One jackpot per UTC day.
 - A UTC day pays about 30% of the pot in ordinary pours, then the spring rests. Under 1,000 sats the cap is off.
 - Streaks: paid days in a row lift the sip (+1% per day, up to +25%) and the jackpot odds (up to 1.5×). Seven days earns one grace day. Days the pot is dry do not break a streak.
+- Invite links: after a first paid drink, each address gets a link with a random code. People who take their first paid drink through it level up the Guide badge (Scout 1, Guide 3, Pathfinder 10, Cartographer 21). Badge only, no extra sats.
 - Anyone can fill the spring with a Lightning invoice (100–10,000 sats, one address per 24 hours).
 - Spam is blocked with a small proof-of-work puzzle in the browser, plus per-address and per-connection limits.
 - Visitors from sanctioned countries are refused (see `src/lib/geo-block.ts`).

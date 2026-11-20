@@ -45,7 +45,10 @@ import {
   applyStreakDrink,
   shouldBackfillGrace,
   maskDestination,
+  makeRefCode,
+  parseRefCode,
   parseUsername,
+  REF_CODE_LENGTH,
   rollPour,
   dayHasRoom,
   dayOrdinaryRoom,
@@ -114,6 +117,8 @@ type DrinkerRow = {
   grace_token?: boolean;
   is_hallow?: boolean;
   last_paid_at?: Date | string | null;
+  referral_count?: number | null;
+  ref_code?: string | null;
 };
 
 /** SHA-256 of `fountain:${phrase}`. Set in the environment. Never commit it. */
@@ -285,6 +290,7 @@ function toLeader(row: DrinkerRow, freeze?: StreakFreeze | null): LeaderEntry {
     pour1000: Boolean(row.is_pour_1000),
     graceToken: hasGrace && streak > 0,
     hallow: Boolean(row.is_hallow),
+    referrals: Number(row.referral_count ?? 0),
   };
 }
 
@@ -934,6 +940,127 @@ async function ensureUsernameSchema(sql: Sql): Promise<void> {
   `);
 }
 
+/**
+ * Invite links (Guide badge). Runs once per server instance: readPool is hit
+ * every few seconds and this DDL never changes after the first pass. A failed
+ * pass clears the slot so the next call retries. Migration 0026 does the same.
+ */
+const referralSchemaRef = globalThis as typeof globalThis & {
+  __fountainReferralSchema__?: Promise<void>;
+};
+
+async function ensureReferralSchema(sql: Sql): Promise<void> {
+  referralSchemaRef.__fountainReferralSchema__ ??= (async () => {
+    await sql.query(
+      "alter table faucet_drinkers add column if not exists ref_code text",
+    );
+    await sql.query(`
+      create unique index if not exists faucet_drinkers_ref_code_idx
+      on faucet_drinkers (ref_code)
+      where ref_code is not null
+    `);
+    // One row per invited drinker. The primary key means one guide per person, forever.
+    await sql.query(`
+      create table if not exists faucet_referrals (
+        referred_hash text primary key,
+        referrer_hash text not null,
+        created_at timestamptz not null default now()
+      )
+    `);
+    await sql.query(`
+      create index if not exists faucet_referrals_referrer_idx
+      on faucet_referrals (referrer_hash)
+    `);
+  })().catch((err) => {
+    referralSchemaRef.__fountainReferralSchema__ = undefined;
+    throw err;
+  });
+  return referralSchemaRef.__fountainReferralSchema__;
+}
+
+/** The drinker's invite code, minted on first use. Null if the address never drank. */
+async function ensureRefCode(sql: Sql, destHash: string): Promise<string | null> {
+  const current = (
+    await sql<{ ref_code: string | null }>`
+      select ref_code from faucet_drinkers where destination_hash = ${destHash}
+    `
+  )[0];
+  if (!current) return null;
+  if (current.ref_code) return current.ref_code;
+  const { randomBytes } = await import("node:crypto");
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const code = makeRefCode(randomBytes(REF_CODE_LENGTH));
+    try {
+      const set = (
+        await sql<{ ref_code: string }>`
+          update faucet_drinkers
+          set ref_code = ${code}
+          where destination_hash = ${destHash} and ref_code is null
+          returning ref_code
+        `
+      )[0];
+      if (set?.ref_code) return set.ref_code;
+      const raced = (
+        await sql<{ ref_code: string | null }>`
+          select ref_code from faucet_drinkers where destination_hash = ${destHash}
+        `
+      )[0]?.ref_code;
+      if (raced) return raced;
+    } catch {
+      /* code already taken by someone else: roll another */
+    }
+  }
+  return null;
+}
+
+async function referralCount(sql: Sql, destHash: string): Promise<number> {
+  const row = (
+    await sql<{ n: number }>`
+      select count(*)::int as n from faucet_referrals where referrer_hash = ${destHash}
+    `
+  )[0];
+  return Number(row?.n ?? 0);
+}
+
+/**
+ * Credit a guide for a first paid drink. Called only when the address has no
+ * drinker row from before this pour. Refused when the code is unknown, points
+ * at the same address, or the guide ever drank from this same connection (a
+ * second wallet on one Wi-Fi is not a new person). Returns true if it counted.
+ */
+async function recordReferral(
+  sql: Sql,
+  rawCode: string | undefined,
+  referredHash: string,
+  ipHash: string,
+): Promise<boolean> {
+  const code = parseRefCode(rawCode);
+  if (!code) return false;
+  const referrer = (
+    await sql<{ destination_hash: string }>`
+      select destination_hash from faucet_drinkers where ref_code = ${code} limit 1
+    `
+  )[0]?.destination_hash;
+  if (!referrer || referrer === referredHash) return false;
+  const sameLine = (
+    await sql<{ n: number }>`
+      select 1 as n from faucet_claims
+      where paid = true and destination_hash = ${referrer} and ip_hash = ${ipHash}
+      limit 1
+    `
+  )[0];
+  if (sameLine) return false;
+  const inserted = (
+    await sql<{ referred_hash: string }>`
+      insert into faucet_referrals (referred_hash, referrer_hash)
+      values (${referredHash}, ${referrer})
+      on conflict (referred_hash) do nothing
+      returning referred_hash
+    `
+  )[0];
+  return Boolean(inserted);
+}
+
 async function ensureDayLockSchema(sql: Sql): Promise<void> {
   await sql.query(`
     create table if not exists faucet_day_locks (
@@ -1349,12 +1476,15 @@ async function readBoards(
 ): Promise<{
   boardSats: LeaderEntry[];
   boardStreak: LeaderEntry[];
+  boardGuides: LeaderEntry[];
 }> {
   const bySats = await sql<DrinkerRow>`
     select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
            is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
            (select max(c.created_at) from faucet_claims c
-             where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at
+             where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at,
+           (select count(*)::int from faucet_referrals r
+             where r.referrer_hash = faucet_drinkers.destination_hash) as referral_count
     from faucet_drinkers
     where total_sats > 0
     order by total_sats desc, drink_count desc
@@ -1364,11 +1494,31 @@ async function readBoards(
     select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
            is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
            (select max(c.created_at) from faucet_claims c
-             where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at
+             where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at,
+           (select count(*)::int from faucet_referrals r
+             where r.referrer_hash = faucet_drinkers.destination_hash) as referral_count
     from faucet_drinkers
     where current_streak > 0
       and last_drink_utc >= ${streakBoardSince(new Date(), freeze)}
     order by current_streak desc, total_sats desc
+  `;
+  // Ties go to whoever reached the count first.
+  const byGuides = await sql<DrinkerRow>`
+    select d.destination_mask, d.username, d.total_sats, d.drink_count, d.current_streak,
+           d.last_drink_utc, d.is_legacy, d.legacy_rank, d.is_pour_500, d.is_pour_1000,
+           d.grace_token, d.is_hallow,
+           (select max(c.created_at) from faucet_claims c
+             where c.paid = true and c.destination_hash = d.destination_hash) as last_paid_at,
+           r.n as referral_count
+    from (
+      select referrer_hash, count(*)::int as n, max(created_at) as reached_at
+      from faucet_referrals
+      group by referrer_hash
+      order by n desc, reached_at asc
+      limit 10
+    ) r
+    join faucet_drinkers d on d.destination_hash = r.referrer_hash
+    order by r.n desc, r.reached_at asc
   `;
   return {
     boardSats: bySats.map((row) => toLeader(row, freeze)),
@@ -1377,6 +1527,7 @@ async function readBoards(
       .filter((row) => row.streak > 0)
       .sort((a, b) => b.streak - a.streak || b.totalSats - a.totalSats)
       .slice(0, 10),
+    boardGuides: byGuides.map((row) => toLeader(row, freeze)),
   };
 }
 
@@ -1396,6 +1547,7 @@ async function readPool(): Promise<FaucetState> {
   await settleOpenPublicTips(sql);
   await syncDonorsFromFills(sql);
   await ensureUsernameSchema(sql);
+  await ensureReferralSchema(sql);
   await ensurePaidPoursOnly(sql);
   await ensureMaintenanceSchema(sql);
   await syncSpringFromPool(sql);
@@ -1479,6 +1631,7 @@ async function readPool(): Promise<FaucetState> {
       walletConnected && dayPaid.jackpots < 1 ? jackpotSatsForPot(payable) : 0,
     boardSats: boards.boardSats,
     boardStreak: boards.boardStreak,
+    boardGuides: boards.boardGuides,
     boardDonors,
     recentFills,
     tipLnAddress: pool.tip_ln_address?.trim() || null,
@@ -1594,6 +1747,8 @@ export const lookupDrinker = createServerFn({ method: "POST" })
       graceToken: false,
       hallow: false,
       hallowDays: 0,
+      referrals: 0,
+      refCode: null,
     };
     if (!isClaimableLightning(data.destination)) return empty;
     const sql = await getSql();
@@ -1604,16 +1759,20 @@ export const lookupDrinker = createServerFn({ method: "POST" })
     await ensureGraceSchema(sql);
     await ensureHallowSchema(sql);
     await ensureUsernameSchema(sql);
+    await ensureReferralSchema(sql);
     const lightning = await import("@/lib/lightning.server");
     const destNorm = data.destination.trim().toLowerCase();
+    const destHash = await lightning.sha256Hex(`dest:${destNorm}`);
     const row = (
       await sql<DrinkerRow>`
       select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
              is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
              (select max(c.created_at) from faucet_claims c
-               where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at
+               where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at,
+             (select count(*)::int from faucet_referrals r
+               where r.referrer_hash = faucet_drinkers.destination_hash) as referral_count
       from faucet_drinkers
-      where destination_hash = ${await lightning.sha256Hex(`dest:${destNorm}`)}
+      where destination_hash = ${destHash}
     `
     )[0];
     if (!row) return empty;
@@ -1627,10 +1786,7 @@ export const lookupDrinker = createServerFn({ method: "POST" })
       hasGrace,
     );
     const total = Number(row.total_sats);
-    const octoberDays = await octoberClaimDays(
-      sql,
-      await lightning.sha256Hex(`dest:${destNorm}`),
-    );
+    const octoberDays = await octoberClaimDays(sql, destHash);
     return {
       found: true,
       mask: row.destination_mask,
@@ -1647,6 +1803,8 @@ export const lookupDrinker = createServerFn({ method: "POST" })
       graceToken: Boolean(row.grace_token) && streak > 0,
       hallow: Boolean(row.is_hallow),
       hallowDays: hallowProgress(octoberDays, utcDateString()),
+      referrals: Number(row.referral_count ?? 0),
+      refCode: await ensureRefCode(sql, destHash),
     };
   });
 
@@ -1786,6 +1944,7 @@ export const claimSats = createServerFn({ method: "POST" })
       nonce: z.number().int().min(0).max(50_000_000),
       honeypot: z.string().max(200).optional(),
       username: z.string().max(24).optional(),
+      ref: z.string().max(32).optional(),
     }),
   )
   .handler(async ({ data }): Promise<ClaimResult> => {
@@ -1824,6 +1983,7 @@ export const claimSats = createServerFn({ method: "POST" })
     await ensureHallowSchema(sql);
     await ensurePourTierSchema(sql);
     await ensureUsernameSchema(sql);
+    await ensureReferralSchema(sql);
     await ensureDayLockSchema(sql);
     const { maintenance, freeze } = await loadFreeze(sql);
     if (maintenance) {
@@ -2205,6 +2365,20 @@ export const claimSats = createServerFn({ method: "POST" })
         earnedHallow = true;
       }
     }
+    // Invite credit only on the very first paid drink. The pour is already
+    // paid, so a failure here must not turn it into an error.
+    let invited = false;
+    let refCode: string | null = null;
+    let referrals = 0;
+    try {
+      if (!priorRow) {
+        invited = await recordReferral(sql, data.ref, destHash, ipHash);
+      }
+      refCode = await ensureRefCode(sql, destHash);
+      referrals = await referralCount(sql, destHash);
+    } catch {
+      /* badge bookkeeping only */
+    }
     const totalSats = Number(priorRow?.total_sats ?? 0) + amount;
     const drinks = Number(priorRow?.drink_count ?? 0) + 1;
     return {
@@ -2231,6 +2405,9 @@ export const claimSats = createServerFn({ method: "POST" })
       earnedGrace: rolledStreak.earnedGrace,
       hallow,
       earnedHallow,
+      referrals,
+      refCode,
+      invited,
     };
   });
 

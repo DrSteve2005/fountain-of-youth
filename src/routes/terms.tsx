@@ -10,7 +10,7 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <LegalPage kicker="v1.5.2" title="Terms" updated="Effective 20 November 2026">
+    <LegalPage kicker="v1.5.3" title="Terms" updated="Effective 21 November 2026">
       <p>
         Fountain of Youth is a public Lightning spring. You drink a random
         pour. You may fill it. There is no account. Using the site is agreeing
@@ -46,7 +46,7 @@ function TermsPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li>Lightning addresses only. No on-chain payouts.</li>
           <li>
-            One paid drink per Lightning address per UTC day. Eight paid drinks
+            One paid drink per Lightning address per UTC day. Two paid drinks
             per connection per UTC day, so a shared building is not one
             person. Streaks follow the address, not the network.
           </li>
@@ -67,6 +67,14 @@ function TermsPage() {
             Legacy was the first 100 unique paid drinkers of the original
             spring. That set is closed for good, and no new Legacy badges are
             awarded.
+          </li>
+          <li>
+            The Guide badge counts people who take their first paid drink
+            through your invite link. It is a badge only. It pays nothing and
+            does not change the pour, the odds, or any limit. An address that
+            already drank, a drink from a connection you drank from, and your
+            own second address do not count. We can remove credit that looks
+            farmed.
           </li>
         </ul>
       </LegalSection>
