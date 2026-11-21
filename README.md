@@ -65,9 +65,6 @@ Set these environment variables on your host (on Vercel, in the Production scope
 | `DATABASE_URL` | yes | Postgres connection string (for example from Neon) |
 | `KEEPER_HASH` | yes | 64-character hex from `hash-keeper.mjs` |
 | `WALLET_WRAP_KEY` | recommended | Long random string (`openssl rand -hex 32`) that encrypts the wallet connection at rest |
-| `VITE_AUTH_ENABLED` | yes | Set to `false` |
-
-`VITE_*` values are baked in at build time, so redeploy after changing them.
 
 Run `npm run build`. Database migrations apply during the build when `DATABASE_URL` is set.
 After the first deploy, open the keeper door and connect your wallet. Never paste a wallet

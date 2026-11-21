@@ -8,9 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
-import { AuthProvider } from "@/lib/auth/provider";
 import { LangProvider } from "@/lib/i18n";
-import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { storeRefCode } from "@/lib/faucet";
 import appCss from "../styles.css?url";
 
@@ -39,6 +37,8 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       { name: "description", content: SHARE_DESC },
       { name: "theme-color", content: "#0c0a08" },
+      { name: "apple-mobile-web-app-title", content: APP_NAME },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: APP_NAME },
       { property: "og:title", content: APP_NAME },
@@ -59,7 +59,7 @@ export const Route = createRootRoute({
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -106,23 +106,20 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body className="bg-bg text-fg">
-        <PreviewHostBridge />
         <RefCapture />
-        <AuthProvider>
-          <QueryClientProvider client={queryClient}>
-            <LangProvider>
-              <Outlet />
-              <Toaster
-                theme="dark"
-                position="top-center"
-                toastOptions={{
-                  className:
-                    "!bg-surface !text-fg !border-line !font-[Outfit,sans-serif]",
-                }}
-              />
-            </LangProvider>
-          </QueryClientProvider>
-        </AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <LangProvider>
+            <Outlet />
+            <Toaster
+              theme="dark"
+              position="top-center"
+              toastOptions={{
+                className:
+                  "!bg-surface !text-fg !border-line !font-[Outfit,sans-serif]",
+              }}
+            />
+          </LangProvider>
+        </QueryClientProvider>
         <Analytics />
         <Scripts />
       </body>

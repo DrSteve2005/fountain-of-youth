@@ -118,9 +118,7 @@ async function deriveWrapKey(material: string): Promise<Buffer> {
 
 /** The real key, using whatever real secret is available in this environment. */
 async function realWrapKey(): Promise<Buffer | null> {
-  // Preferred if the deploy platform ever lets you set a custom var — not
-  // required, since Grok's own deploy pipeline only documents injecting
-  // DATABASE_URL / XAI_API_KEY / auth creds, with no custom-secret panel.
+  // Preferred: a dedicated WALLET_WRAP_KEY set in the host's environment.
   const custom = process.env.WALLET_WRAP_KEY?.trim();
   if (custom && custom.length >= 16) return deriveWrapKey(`custom:${custom}`);
   // Falls back to DATABASE_URL: a real, platform-injected secret (a Neon

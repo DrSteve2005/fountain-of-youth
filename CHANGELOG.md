@@ -11,6 +11,38 @@ when `DATABASE_URL` is set. Boot also runs idempotent schema guards
 (`ensureGraceSchema`, `ensureHallowSchema`, `ensureFillBlockSchema`) that add
 missing columns and run one-time backfills gated by flags on `faucet_pool`.
 
+## [Unreleased]
+
+Repo cleanup. No change to pours, limits, odds, the wallet or the database.
+
+### Changed
+- Share and home-screen tags now come only from `src/routes/__root.tsx`. The
+  Grok head injector used to strip `og:description`, `og:url`, `og:site_name`,
+  `og:type` and the `twitter:*` tags and add its own, so link previews had no
+  description.
+- New static `public/manifest.webmanifest` with the existing 192 and 512 px
+  icons. The old `/__grok/manifest.webmanifest` and `apple-touch-icon` pointed
+  at `/__grok/icon-180.png`, which was never deployed.
+- `npm` scripts call Vite directly (no `with-app-env.mjs` wrapper).
+
+### Removed
+- `https://grok.com/grok-app-builder/extensions.js`, which the injector added
+  to every page.
+- The Grok PWA layer: `scripts/grok-pwa-*`, `scripts/install-page.html` (the
+  `?install=1` page), `server/` and `src/lib/og/site.json`.
+- Unused Grok template code: `src/lib/auth/` (Better Auth, never mounted),
+  `src/lib/app-data/`, `src/lib/multiplayer/`, the preview host bridge,
+  `migrations/auth/` (opt-in, never applied) and the sandbox scripts (preview,
+  browser smoke, brand check, sign-out plan, auth invariant, app env).
+- 36 unused packages, including `better-auth`, `jose`, `kysely`, `recharts`,
+  `playwright`, `zustand` and 20 `@radix-ui/*` packages. `package-lock.json`
+  pruned to match.
+- `VITE_AUTH_ENABLED` and `GROK_AUTH_CLIENT_SECRET`. Nothing reads them.
+
+### Fixed
+- `npm test` passes again. The migration test expected an empty
+  `migrations/` folder, and the PWA tests checked Grok platform output.
+
 ## [1.5.3] - 2026-11-21
 
 ### Added
