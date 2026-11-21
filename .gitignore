@@ -1,30 +1,34 @@
+# Dependencies
 node_modules
+.node_modules.lock
+
+# Build output and caches
 .vercel
+.tanstack
+*.log
+
+# Secrets (never commit these)
 .env
 .env.*
 !.env.example
-.tanstack
-.grok/
-AGENTS.md
-AGENTS.project.md
-*.log
-screenshots
-artifacts
-attachments
-.project_id
-.node_modules.lock
-*.zip
-public/__grok/
-
-# builder / local-only material
-.vercel/
-.tanstack/
-screenshots/
-attachments/
-artifacts/
+.dev.vars
 *.pem
 *.key
-.dev.vars
+
+# Local databases
 *.db
 *.sqlite
+
+# Local-only material
+screenshots
+attachments
+artifacts
+*.zip
 .claude/settings.local.json
+
+# Grok builder files
+.grok/
+public/__grok/
+AGENTS.md
+AGENTS.project.md
+.project_id
