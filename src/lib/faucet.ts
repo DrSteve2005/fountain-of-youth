@@ -299,7 +299,7 @@ export type PublicPot = {
   updatedAt: string;
 };
 
-export type Lang = "en" | "es";
+export type Lang = "en" | "es" | "ms";
 
 export function formatSats(n: number, locale = "en-US"): string {
   return `${Math.max(0, Math.floor(n)).toLocaleString(locale)} sats`;

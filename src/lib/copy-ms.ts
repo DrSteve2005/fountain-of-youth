@@ -1,0 +1,346 @@
+type Dict = Record<string, string>;
+
+export const ms: Dict = {
+  "status.maintenance": "Penyelenggaraan",
+  "status.flowing": "Mengalir",
+  "status.sealed": "Tertutup",
+  "status.dry": "Kering",
+  "hero.kicker": "Air pancut keremajaan",
+  "hero.title": "Minum satu tuangan rawak.",
+  "hero.body":
+    "Tampal alamat Lightning. Air pancut ini membayar satu tuangan rawak melalui Lightning — dari dua puluh satu sats hingga jackpot yang membesar bersama mata air.",
+  "hallow.kicker": "Hantu Halloween",
+  "hallow.body":
+    "Tiga minuman berturut-turut mendapat lencana tanglung labu. Mengisi tidak dikira, dan tuangan kekal sama.",
+  "hallow.mark": "Lencana Hantu",
+  "hallow.progress": "Lencana {n} daripada 3",
+  "hallow.nights": "{n} malam lagi",
+  "hallow.nightsOne": "Malam terakhir",
+  "refill.kicker": "Pengisian besar",
+  "refill.wait": "Mata air naik pada 20:00 CET, 31 Oktober.",
+  "refill.today": "Mata air naik malam ini.",
+  "well.reading": "Membaca mata air…",
+  "well.readFail": "Tidak dapat membaca air pancut.",
+  "well.sealed": "Tertutup — menunggu penjaga",
+  "well.remaining": "{sats} berbaki",
+  "well.jackpot": " · jackpot {sats}",
+  "well.tap": "Ketik air pancut untuk mengisi",
+  "maint.title": "Dalam penyelenggaraan",
+  "maint.body":
+    "Penjaga sedang memindahkan Lightning. Minum dan isi dijeda selama sehari dua. Rentetan anda dibekukan — ia tidak akan putus semasa mata air ditutup.",
+  "stats.spring": "Dalam mata air",
+  "stats.poured": "Dituang",
+  "stats.drips": "Titisan",
+  "stats.dripsHint": "Tuangan Lightning berbayar",
+  "claim.title": "Minum",
+  "claim.body":
+    "Satu tuangan Lightning rawak. Mata air lebih penuh, teguk lebih besar dan jackpot lebih besar. Rentetan menambah teguk dan peluang jackpot.",
+  "claim.lightning": "Lightning",
+  "claim.onchain": "On-chain",
+  "claim.address": "Alamat Lightning",
+  "claim.boardName": "Nama papan",
+  "claim.optional": "pilihan",
+  "claim.boardPlaceholder": "dipaparkan di papan",
+  "claim.streak": "Rentetan hari {n} · teguk +{sip}% · jackpot +{boost}%",
+  "claim.streakWaiting": "Rentetan menunggu · minum hari ini untuk sambung",
+  "claim.first": "Minuman pertama memulakan rentetan.",
+  "claim.hint": "Kembali setiap hari UTC. Tujuh hari mendapat satu hari tangguh.",
+  "claim.graceReady": "Hari tangguh sedia — satu kali tertinggal tidak akan menghapuskan anda.",
+  "claim.onchainWarn":
+    "Alamat on-chain tidak boleh menerima tuangan sebenar. Gunakan alamat Lightning.",
+  "claim.recharge": "Mengecas {s}s",
+  "claim.powChallenge": "Meminta teka-teki…",
+  "claim.powSolving": "Membuktikan anda bukan bot…",
+  "claim.powSending": "Menghantar tuangan anda…",
+  "claim.cancel": "Batal",
+  "claim.submit": "Minum satu tuangan rawak",
+  "claim.solving": "Menyelesaikan teka-teki",
+  "claim.paying": "Membayar melalui Lightning",
+  "claim.starting": "Bermula",
+  "claim.maintBtn": "Mata air dalam penyelenggaraan",
+  "claim.sealedBtn": "Mata air tertutup",
+  "claim.dryBtn": "Kekalkan rentetan",
+  "claim.dryHold":
+    "Mata air kering. Hari kosong tidak memutuskan rentetan. Tekan tuang untuk mengekalkan hari ini. Tiada sats.",
+  "claim.wait": "Tunggu {s}s",
+  "claim.powFoot":
+    "Minum akan menggunakan peranti anda sebentar untuk menyelesaikan teka-teki penghalang spam dahulu (~2–4s CPU pada kebanyakan telefon). Ia juga menguatkuasakan had IP dan alamat. Sats dibayar melalui Lightning, bukan dijanjikan dalam lejar.",
+  "pour.jackpot": "Tuangan jackpot",
+  "pour.rare": "Tuangan jarang",
+  "pour.paid": "Dibayar",
+  "pour.to": "Dibayar melalui Lightning kepada",
+  "pour.day": "Rentetan hari {n}",
+  "pour.graceUsed": "Hari tangguh digunakan. Rentetan kekal.",
+  "pour.graceEarned": "Hari tangguh diperoleh. Tertinggal sekali pun rentetan masih kekal.",
+  "pour.hallow":
+    "Lencana Hantu diperoleh. Tiga minuman, bukan pengisian. Ia kekal di sebelah nama anda.",
+  "pour.close": "Tutup",
+  "pour.remain": "{claimed} dituntut · {remain} berbaki dalam mata air.",
+  "pour.legacyLine": "Antara yang terawal minum. Anda mendapat lencana Legacy.",
+  "pour.foundIt": "Anda menjumpainya. Lencana itu kekal di papan.",
+  "pour.thousand": "Anda minum tuangan ke-1,000. Ia kekal di papan.",
+  "pour.boost": "Jackpot +{boost}%",
+  "pour.sipBoost": "Teguk +{sip}%",
+  "claim.thousand": "Ke-1000",
+  "claim.legacy": "Legacy",
+  "mark.medal": "Tuangan ke-500",
+  "well.fillAria": "Isi mata air",
+  "board.pours": "{n} tuangan",
+  "board.pourOne": "1 tuangan",
+  "board.streakDays": "rentetan {n}h",
+  "board.noStreak": "tiada rentetan",
+  "board.streakShort": "{n}h",
+  "basin.fills": "{n} isian",
+  "basin.fillOne": "1 isian",
+  "basin.hide": "Sembunyi",
+  "recent.lightning": "Lightning",
+  "relative.justNow": "baru sebentar tadi",
+  "relative.s": "{n}s lalu",
+  "relative.m": "{n}m lalu",
+  "relative.h": "{n}j lalu",
+  "relative.d": "{n}h lalu",
+  "error.reach": "Tidak dapat menghubungi air pancut. Cuba lagi.",
+  "know.kicker": "v1.5.2",
+  "know.updated": "9 November 2026",
+  "know.lead":
+    "Air pancut ini membayar sats yang kecil. Ini cara untuk tidak kehilangan yang lebih besar. Ini bukan sebab untuk membeli.",
+  "know.home":
+    "Jika duit syiling mula bermakna, baca ini sebelum anda meninggalkannya di mana-mana.",
+  "know.fromFaq": "Cara tidak kehilangannya:",
+  "know.keys.title": "Bukan kunci anda",
+  "know.keys.body":
+    "Jika orang lain boleh membekukan syiling itu, ia bukan milik anda. Baki di bursa hanyalah janji. Janji boleh dimungkiri.",
+  "know.exchange.title": "Jangan tinggalkan syiling di bursa",
+  "know.exchange.body":
+    "Sesuai untuk berdagang. Tidak untuk menyimpan. Bursa boleh digodam, muflis, dan mengunci pengeluaran. Apabila dagangan selesai, keluarkan syiling anda.",
+  "know.hot.title": "Dompet panas untuk berbelanja",
+  "know.hot.body":
+    "Phoenix, Wallet of Satoshi, Alby dan yang lain ialah cara anda minum di sini. Ia sentiasa dalam talian. Telefon boleh dicuri. Aplikasi boleh digodam. Simpan sats untuk dibawa ke mana-mana di situ. Jangan tinggalkan timbunan yang anda akan sesali jika hilang.",
+  "know.cold.title": "Dompet sejuk ialah peti besi",
+  "know.cold.body":
+    "Dompet perkakasan menyimpan kunci di luar talian. Belilah daripada pembuatnya, bukan daripada orang asing di pasaran. Tulis seed pada kertas atau keluli. Peranti boleh rosak. Perkataan itulah syilingnya. Dua salinan, dua tempat. Bukan gambar. Bukan nota awan. Bukan sembang.",
+  "know.seed.title": "Jangan sekali-kali menaip seed",
+  "know.seed.body":
+    "Tiada laman yang akan memintanya, termasuk laman ini. Bukan sokongan. Bukan bayaran balik. Bukan pengesahan. Jika seseorang meminta perkataan itu, dia sedang mengambil syiling anda.",
+  "know.lightning.title": "Lightning bukan peti besi",
+  "know.lightning.body":
+    "Mata air ini membayar Lightning. Lightning untuk sats kecil yang pantas. Baki Lightning selalunya masih berada di nod orang lain kecuali anda menjalankan nod sendiri. Apabila jumlahnya bermakna, pindahkan on-chain ke alamat yang anda kawal.",
+  "know.address.title": "Dua jenis alamat",
+  "know.address.body":
+    "name@wallet.com ialah Lightning. bc1… ialah on-chain. Air pancut ini hanya membayar Lightning. Alamat bc1 tidak boleh minum.",
+  "know.test.title": "Hantar sedikit dahulu",
+  "know.test.body":
+    "Dompet baharu, alamat baharu: hantar ujian kecil. Tunggu sehingga ia sampai. Kemudian hantar bakinya.",
+  "know.price.title": "Harga turun naik",
+  "know.price.body":
+    "Air pancut ini tidak menyuruh anda membeli. Jika anda membeli, hanya jumlah yang boleh dibiarkan bertahun-tahun. Jangan berhutang untuk membelinya.",
+  "know.tonight.title": "Semak malam ini",
+  "know.tonight.body":
+    "Jika telefon rosak, adakah anda masih boleh mencapai syiling anda? Jika tidak, betulkan sebelum simpanan bertambah.",
+  "faq.phoenix.title": "Saya guna Phoenix",
+  "faq.phoenix.body":
+    "Dalam Phoenix: Receive → Lightning address (atau LNURL). Salin rentetan gaya name@phoenixwallet.me. Bukan invois bolt11. Bukan alamat on-chain bc1…. Bukan QR invois dengan jumlah tetap. Phoenix mesti cukup dalam talian untuk menyelesaikan. Jika tuangan gagal, tunggu dan minum semula selepas tempoh tunggu — anda tidak dikira minum kali kedua hari itu melainkan sats benar-benar sampai.",
+  "faq.wallets.title": "Dompet apa yang berfungsi?",
+  "faq.wallets.body":
+    "Mana-mana dompet yang memberi alamat Lightning: Phoenix, Wallet of Satoshi, Alby, Zeus, Blink, Muun (alamat Lightning jika ditawarkan), dan kebanyakan yang lain. Alamat Bitcoin on-chain tidak boleh dibayar.",
+  "faq.legacy.title": "Apa itu Legacy?",
+  "faq.legacy.body":
+    "100 peminum berbayar unik yang pertama pada mata air asal mendapat lencana Legacy. Set itu telah ditutup selama-lamanya, dan tiada lencana Legacy baharu diberikan. Lencana yang kekal selepas pembinaan semula November 2026 tetap berada di papan.",
+  "faq.animals.title": "Udang, ikan, ikan lumba-lumba, paus?",
+  "faq.animals.body":
+    "Jumlah sats berbayar sepanjang hayat pada alamat berhash itu. Bawah 1,000 ialah udang. 1,000–4,999 ialah ikan. 5,000–9,999 ialah ikan lumba-lumba. 10,000+ ialah paus. Ia tahap, bukan hadiah.",
+  "faq.fill.title": "Bagaimana mengisi mata air?",
+  "faq.fill.body":
+    "Ketik air pancut. Tampal alamat Lightning anda (untuk had harian), pilih jumlah, bayar invois. Minimum 100 sats. Maksimum 10,000 sats. Satu alamat setiap 24 jam. 100% untuk tuangan. Isian berbayar disenaraikan di bawah kolam.",
+  "faq.cap.title": "Mengapa ada had?",
+  "faq.cap.body":
+    "Ini mata air awam yang kecil, bukan kempen derma dan bukan tempat mengaburkan wang. Mengisi tidak membeli minuman tambahan atau peluang lebih baik. Ia meletakkan alamat bertopeng anda di bawah kolam.",
+  "faq.sealed.title": "Tertutup atau kering?",
+  "faq.sealed.body":
+    "Tertutup bermakna dompet penjaga tidak disambungkan — tiada siapa boleh minum atau mengisi. Kering bermakna dompet hidup tetapi pot kurang daripada 21 sats. Hari kosong tidak memutuskan rentetan. Isilah jika boleh.",
+  "faq.puzzle.title": "Mengapa ada teka-teki sebelum minum?",
+  "faq.puzzle.body":
+    "Proof-of-work. Ia memperlahankan bot. Telefon anda melakukannya di latar belakang. Manusia hampir tidak perasan.",
+  "faq.mixer.title": "Adakah ini mixer?",
+  "faq.mixer.body":
+    "Tidak. Tip dihadkan, invois ditetapkan, dan tuangan ialah minuman kecil rawak kepada sesiapa yang hadir. Jangan hantar syiling curi. Kami tidak melakukan KYC. Kami juga tidak mengaburkan nilai.",
+  "faq.feedback.title": "Bagaimana menghantar maklum balas?",
+  "faq.feedback.body":
+    "Gunakan halaman maklum balas. Ia membuka mel kepada penjaga. Jangan hantar seed atau rentetan NWC.",
+  "faq.data.title": "Bagaimana dengan data saya?",
+  "faq.data.body":
+    "Tiada akaun. Kami menyimpan hash IP dan alamat Lightning, nama bertopeng di papan, dan jumlah berbayar. Hash bukan tanpa nama. Baca Privasi dan Terma.",
+  "recent.title": "Tuangan terkini",
+  "recent.body": "Minuman berbayar terakhir daripada air pancut.",
+  "recent.empty": "Belum ada titisan. Jadilah yang pertama.",
+  "recent.paid": " · Dibayar",
+  "recent.jackpot": " · Jackpot",
+  "board.title": "Mata air",
+  "board.body": "Minuman berbayar sahaja.",
+  "board.leaders": "Papan pendahulu",
+  "board.streaks": "Rentetan",
+  "board.guides": "Pemandu",
+  "guides.title": "Para pemandu",
+  "guides.body": "Siapa yang membawa paling ramai orang ke mata air. Minuman berbayar pertama sahaja.",
+  "guides.empty":
+    "Belum ada jemputan. Selepas tuangan pertama anda, pautan anda ada pada kad minuman.",
+  "guides.legend":
+    "Peninjau 1 · Pemandu 3 · Perintis 10 · Kartografer 21. Lencana sahaja, tiada sats tambahan.",
+  "guides.count": "{n} dijemput",
+  "guides.countOne": "1 dijemput",
+  "board.empty": "Belum ada peminum berbayar. Tuangan pertama memulakan rentetan.",
+  "board.frozen":
+    "Rentetan dibekukan semasa mata air dalam penyelenggaraan. Udang bawah 1,000 · Ikan 1,000–4,999 · Lumba-lumba 5,000–9,999 · Paus 10,000+.",
+  "board.legend":
+    "Udang bawah 1,000 · Ikan 1,000–4,999 · Lumba-lumba 5,000–9,999 · Paus 10,000+.",
+  "animal.shrimp": "Udang",
+  "animal.fish": "Ikan",
+  "animal.dolphin": "Lumba-lumba",
+  "animal.whale": "Paus",
+  "donor.drop": "Titis",
+  "donor.stream": "Sungai",
+  "donor.flood": "Banjir",
+  "basin.title": "Kolam",
+  "basin.tab": "Kolam",
+  "basin.body": "Siapa yang mengisi mata air. Disenaraikan. Tiada minuman tambahan, tiada peluang lebih baik.",
+  "basin.empty": "Belum ada isian. Invois berbayar pertama disenaraikan di sini.",
+  "basin.legend": "Titis bawah 1,000 · Sungai 1,000–4,999 · Banjir 5,000+. 100% untuk tuangan.",
+  "how.aimTitle": "Sasar",
+  "how.aimBody":
+    "Masukkan alamat Lightning seperti name@walletofsatoshi.com atau you@getalby.com.",
+  "how.drinkTitle": "Minum",
+  "how.drinkBody":
+    "Satu teka-teki membuktikan anda bukan bot. Kemudian air pancut membayar satu tuangan rawak. Mata air lebih penuh menuang teguk lebih besar. Jackpot membesar lebih pantas daripada teguk.",
+  "how.returnTitle": "Kembali",
+  "how.returnBody":
+    "Setiap hari UTC menambah rentetan: +1% pada teguk biasa (had +25%) dan +1% pada peluang jackpot (had +50%). Tujuh hari mendapat satu hari tangguh. Hari kosong tidak memutuskan rentetan.",
+  "footer.blurb":
+    "Fountain of Youth membayar satoshi sebenar melalui Lightning daripada dompet penjaga yang disambungkan. Satu minuman setiap alamat sehari. Rentetan, Legacy dan papan pendahulu hanya mengira tuangan berbayar. Tiada akaun. IP dihash untuk had kadar. Alamat Lightning dihash untuk rentetan. Tiada data dijual.",
+  "footer.fill": "Isi mata air",
+  "footer.tips":
+    "Tip ialah invois Lightning, maksimum 10,000 sats, satu alamat sehari. 100% untuk tuangan.",
+  "nav.faq": "Soalan lazim",
+  "nav.know": "Baik untuk tahu",
+  "nav.changelog": "Perubahan",
+  "nav.feedback": "Maklum balas",
+  "feedback.lead":
+    "Beritahu penjaga jika sesuatu rosak, jika jiran terkunci keluar, atau jika anda ada idea. Ini tidak membuat akaun. Ia membuka aplikasi mel anda kepada",
+  "feedback.warn": "Jangan hantar seed, rentetan NWC, atau frasa penjaga.",
+  "feedback.write": "Tulis",
+  "feedback.bug": "Pepijat",
+  "feedback.idea": "Idea",
+  "feedback.other": "Lain-lain",
+  "feedback.message": "Mesej",
+  "feedback.placeholder": "Apa yang penjaga patut tahu?",
+  "feedback.send": "Buka mel",
+  "nav.privacy": "Privasi",
+  "nav.terms": "Terma",
+  "nav.github": "GitHub",
+  "nav.embed": "Benam",
+  "nav.home": "Utama",
+  "nav.back": "Kembali ke mata air",
+  "legal.lang": "Bahasa",
+  "embed.kicker": "Perigi",
+  "embed.title": "Fountain of Youth",
+  "embed.flowing": "Mengalir",
+  "embed.resting": "Berehat",
+  "embed.sealed": "Tertutup",
+  "embed.jackpot": "Jackpot {sats}",
+  "embed.drips": "{n} titisan",
+  "embed.drink": "Minum",
+  "embed.help":
+    "Lencana langsung untuk laman anda. Pot dan jackpot dikemas kini sendiri. Tiada akaun. Tiada penjejakan.",
+  "embed.iframe": "Iframe",
+  "embed.copy": "Salin",
+  "embed.copied": "Disalin",
+  "embed.json": "JSON",
+  "embed.jsonHelp": "Pot awam. CORS terbuka. Cache kira-kira 20 saat.",
+  "guide.scout": "Peninjau",
+  "guide.guide": "Pemandu",
+  "guide.pathfinder": "Perintis",
+  "guide.cartographer": "Kartografer",
+  "guide.markLabel": "{tier} · {n} dijemput",
+  "guide.markLabelOne": "{tier} · 1 dijemput",
+  "guide.lineNone": "Bawa seorang kawan, dapat lencana",
+  "guide.lineOne": "1 dijemput · {left} lagi ke {tier}",
+  "guide.line": "{n} dijemput · {left} lagi ke {tier}",
+  "guide.lineTop": "{n} dijemput · tahap tertinggi",
+  "guide.copyLink": "Salin pautan",
+  "guide.yourLink": "Pautan jemputan anda",
+  "guide.copyAria": "Salin pautan jemputan",
+  "guide.none":
+    "Kongsikannya. Apabila seseorang mengambil minuman berbayar pertamanya melalui pautan ini, anda mendapat lencana Peninjau.",
+  "guide.progressOne": "1 orang dijemput · {left} lagi untuk {tier}",
+  "guide.progress": "{n} orang dijemput · {left} lagi untuk {tier}",
+  "guide.top": "{n} orang dijemput · tahap tertinggi",
+  "guide.invitedLine":
+    "Anda datang melalui pautan jemputan. Anda kini dikira untuk lencana pemandu anda.",
+  "faq.guide.title": "Apa itu lencana Pemandu?",
+  "faq.guide.body":
+    "Selepas minuman berbayar pertama anda, kad minuman menunjukkan pautan jemputan anda. Apabila seseorang mengambil minuman berbayar pertamanya melalui pautan itu, dia dikira untuk anda. Peninjau pada 1, Pemandu pada 3, Perintis pada 10, Kartografer pada 21. Ia lencana sahaja: tiada sats tambahan, tiada peluang lebih baik. Setiap orang dikira sekali, untuk seorang pemandu. Alamat yang sudah minum tidak dikira, begitu juga minuman daripada sambungan yang pernah anda gunakan untuk minum sendiri. Pautan membawa kod rawak, bukan alamat anda. Tiada akaun.",
+  "faq.kicker": "v1.5.3",
+  "faq.updated": "21 November 2026",
+  "faq.maint.title": "Mata air menyatakan penyelenggaraan",
+  "faq.maint.body":
+    "Penjaga sedang memindahkan dompet Lightning. Minum dan isi dijeda. Rentetan dibekukan pada hari-hari itu — anda tidak akan kehilangan sehari kerana perigi ditutup.",
+  "faq.what.title": "Apa ini?",
+  "faq.what.body":
+    "Mata air Lightning awam. Tampal alamat, minum satu tuangan sats rawak. Tiada akaun. Pot diisi oleh penjaga dan tip. 100% tip kembali ke dalam tuangan.",
+  "faq.why.title": "Mengapa memberi bitcoin percuma?",
+  "faq.why.body":
+    "Supaya lebih ramai orang menemui Bitcoin. Satu sat pertama yang benar-benar anda terima lebih bermakna daripada utas yang hanya dibaca. Ini bukan perniagaan. Tip mengisi semula mata air. Ia tidak membayar gaji.",
+  "faq.how.title": "Bagaimana saya minum?",
+  "faq.how.body":
+    "Anda perlukan alamat Lightning yang kelihatan seperti e-mel: you@wallet.com. Tampal di halaman utama dan tekan Minum. Satu tuangan berbayar setiap alamat Lightning setiap hari UTC. Wi‑Fi bangunan yang dikongsi boleh menuang dua kali sehari supaya jiran tidak terkunci. Nama papan pilihan (3–16 aksara) bersifat awam jika anda menetapkannya.",
+  "faq.howMuch.title": "Berapa banyak yang boleh saya dapat?",
+  "faq.howMuch.body":
+    "Rawak. Lantai mutlak ialah 21 sats. Mata air lebih penuh menuang teguk lebih besar dan jackpot lebih besar. Jackpot ialah 10% daripada perigi. Peluang lebih tinggi apabila hadiah itu kecil, dan lebih jarang apabila ia besar, supaya satu kemenangan tidak dapat mengosongkan mata air yang penuh. Satu jackpot setiap hari UTC. Satu hari membayar kira-kira 30% pot dalam tuangan biasa, kemudian berehat. Di bawah 1,000 sats hari itu tidak berehat. Jackpot berada di luar had itu. Rentetan menambah sehingga +25% pada teguk dan menggandakan peluang jackpot sehingga 1.5×.",
+  "faq.streak.title": "Apa itu rentetan?",
+  "faq.streak.body":
+    "Minum pada hari UTC berturut-turut dengan alamat Lightning yang sama. Tertinggal sehari dan ia ditetapkan semula — kecuali anda memegang hari tangguh. Tujuh hari berbayar berturut-turut mendapat satu hari tangguh. Satu kali tertinggal menggunakannya. Dua kali tertinggal masih menghapuskan rentetan. Jika anda sudah mempunyai tujuh hari ketika ini bermula, anda mendapat satu. Hari mata air kosong tidak dikira tertinggal, walaupun anda tidak hadir. Jika ia sedang berehat, tekan tuang juga untuk mengekalkan rentetan tanpa sats.",
+  "faq.hallow.title": "Apa itu lencana Hantu?",
+  "faq.hallow.body":
+    "Pada bulan Oktober, tiga minuman pada hari UTC berturut-turut mendapat lencana tanglung labu di sebelah nama itu. Minuman yang sudah diambil dikira untuk tiga itu. Satu minuman tidak cukup. Mengisi mata air tidak mendapatkannya. Ia tidak menaikkan teguk atau peluang jackpot. Pada 1 November tawaran ditutup. Lencana yang sudah diperoleh kekal.",
+  "faq.embed.title": "Bolehkah saya letak perigi di laman saya?",
+  "faq.embed.body":
+    "Boleh. Lencana langsung kecil: iframe /embed, atau ambil /api/pot untuk JSON. Tiada kunci. Nombornya sudah ada di halaman utama.",
+  "faq.lang.title": "Bahasa / language",
+  "faq.lang.body":
+    "Bahasa Inggeris, Sepanyol atau Melayu. Suisnya ada di pengepala. Ia kekal pada peranti ini.",
+  "error.alreadyDrank": "Alamat Lightning itu sudah minum hari ini.",
+  "error.ipCap":
+    "Sambungan ini sudah menuang cukup hari ini. Wi‑Fi kongsi mendapat dua minuman sehari.",
+  "error.farmClosed":
+    "Sambungan ini telah membuka cukup banyak alamat baharu. Minumlah daripada alamat yang sudah mengenali mata air.",
+  "error.freshClosed":
+    "Mata air telah membayar cukup minuman pertama hari ini. Kembali esok, atau minum daripada alamat yang sudah mengenalinya.",
+  "error.puzzleLight": "Teka-teki terlalu ringan. Cuba tuangan itu semula.",
+  "error.resting": "Air pancut berehat sehingga esok.",
+  "error.course": "Mata air hari ini sudah habis. Kembali esok.",
+  "error.streakHeld": "Rentetan anda dikekalkan.",
+  "error.recharge": "Mata air sedang mengecas. Cuba lagi sebentar lagi.",
+  "error.lnOnly":
+    "Tuangan sebenar hanya melalui Lightning. Gunakan alamat Lightning seperti you@wallet.com.",
+  "error.pasteLn": "Tampal alamat Lightning (name@host).",
+  "error.sealed": "Mata air tertutup. Penjaga belum menyambungkan Lightning.",
+  "error.puzzleExpired": "Teka-teki tamat tempoh. Cuba tuangan itu semula.",
+  "error.tooFast": "Terlalu laju. Minumlah seperti manusia.",
+  "error.puzzleFail": "Teka-teki mata air gagal. Cuba lagi.",
+  "error.nameTaken": "Nama itu sudah digunakan.",
+  "error.dry": "Mata air kering. Kembali apabila penjaga mengisinya.",
+  "error.walletLow": "Dompet yang disambungkan tidak mempunyai cukup sats untuk satu tuangan.",
+  "error.invoicePage":
+    "Dompet itu menghantar halaman dan bukan invois. Alamat tidak ditolak. Cuba lagi, atau gunakan yang lain.",
+  "error.invoiceSoft":
+    "Dompet itu tidak dapat membuat invois. Alamat tidak ditolak. Cuba lagi.",
+  "error.addressMissing":
+    "Alamat Lightning itu tidak ditemui. Semak dan cuba lagi.",
+  "error.payOffline":
+    "Mata air tidak dapat menghantar tuangan. Alamat anda tiada masalah. Dompet penjaga mungkin kosong atau di luar talian.",
+  "error.paySlow":
+    "Mata air tidak dapat menghantar tuangan tepat pada masanya. Alamat anda tiada masalah. Cuba lagi.",
+  "error.payFail": "Pembayaran Lightning gagal.",
+  "error.slow": "Perlahan sebentar, kemudian cuba lagi.",
+  "error.maint":
+    "Mata air dalam penyelenggaraan. Rentetan dibekukan. Kembali dalam sehari dua.",
+};

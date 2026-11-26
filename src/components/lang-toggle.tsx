@@ -13,7 +13,7 @@ export function LangToggle({ className }: { className?: string }) {
       role="group"
       aria-label={t("legal.lang")}
     >
-      {(["en", "es"] as const).map((code: Lang) => (
+      {(["en", "es", "ms"] as const).map((code: Lang) => (
         <button
           key={code}
           type="button"
