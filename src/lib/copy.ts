@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/faucet";
+import { ms } from "@/lib/copy-ms";
 
 type Dict = Record<string, string>;
 
@@ -307,7 +308,7 @@ const en: Dict = {
     "Yes. A small live badge: iframe /embed, or fetch /api/pot for JSON. No key. The numbers are already on the home page.",
   "faq.lang.title": "Idioma / language",
   "faq.lang.body":
-    "English or Spanish. The switch is in the header. It stays on this device.",
+    "English, Spanish or Malay. The switch is in the header. It stays on this device.",
   "error.alreadyDrank": "That Lightning address already drank today.",
   "error.ipCap":
     "This connection already poured enough today. Shared Wi‑Fi gets two drinks a day.",
@@ -651,7 +652,7 @@ const es: Dict = {
     "Sí. Una placa en vivo: iframe /embed, o pide /api/pot para JSON. Sin clave. Los números ya están en la portada.",
   "faq.lang.title": "Idioma / language",
   "faq.lang.body":
-    "Inglés o español. El interruptor está en la cabecera. Queda en este aparato.",
+    "Inglés, español o malayo. El interruptor está en la cabecera. Queda en este aparato.",
   "error.alreadyDrank": "Esa dirección Lightning ya bebió hoy.",
   "error.ipCap":
     "Esta conexión ya vertió bastante hoy. El Wi‑Fi compartido tiene dos tragos al día.",
@@ -690,7 +691,7 @@ const es: Dict = {
     "El manantial está en mantenimiento. Las rachas están congeladas. Vuelve en un día o dos.",
 };
 
-const TABLES: Record<Lang, Dict> = { en, es };
+const TABLES: Record<Lang, Dict> = { en, es, ms };
 
 const ERROR_EN: Record<string, string> = {
   "That Lightning address already drank today.": "error.alreadyDrank",
@@ -741,7 +742,9 @@ export function fill(template: string, vars: Record<string, string | number>): s
 }
 
 export function localeFor(lang: Lang): string {
-  return lang === "es" ? "es-ES" : "en-US";
+  if (lang === "es") return "es-ES";
+  if (lang === "ms") return "ms-MY";
+  return "en-US";
 }
 
 export function errorKey(message: string): string | null {

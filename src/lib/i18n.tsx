@@ -23,13 +23,15 @@ const I18nContext = createContext<I18n | null>(null);
 function readStoredLang(): Lang {
   try {
     const stored = localStorage.getItem(LANG_KEY);
-    if (stored === "es" || stored === "en") return stored;
+    if (stored === "es" || stored === "en" || stored === "ms") return stored;
   } catch {
     /* ignore */
   }
   try {
     const nav = navigator.language || "";
-    if (nav.toLowerCase().startsWith("es")) return "es";
+    const navLower = nav.toLowerCase();
+    if (navLower.startsWith("es")) return "es";
+    if (navLower.startsWith("ms")) return "ms";
   } catch {
     /* ignore */
   }
