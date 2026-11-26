@@ -119,6 +119,9 @@ export type FaucetState = {
   pour1000Awarded: boolean;
   maintenance: boolean;
   hallowOpen: boolean;
+  xmasOpen: boolean;
+  /** Invites that counted during the Winter Lights event. */
+  xmasReferrals: number;
 };
 
 export type RecentPour = {
@@ -145,6 +148,7 @@ export type LeaderEntry = {
   pour1000: boolean;
   graceToken: boolean;
   hallow: boolean;
+  xmas: boolean;
   /** People who took their first paid drink through this drinker's invite link. */
   referrals: number;
 };
@@ -180,6 +184,9 @@ export type DrinkerPreview = {
   hallow: boolean;
   /** Paid October days in a row, still alive. Not the lifetime streak. */
   hallowDays: number;
+  xmas: boolean;
+  /** Paid December days in a row inside the event, still alive. */
+  xmasDays: number;
   referrals: number;
   /** Random invite code for this address. Not derived from the address. */
   refCode: string | null;
@@ -209,6 +216,8 @@ export type ClaimOk = {
   earnedGrace: boolean;
   hallow: boolean;
   earnedHallow: boolean;
+  xmas: boolean;
+  earnedXmas: boolean;
   referrals: number;
   refCode: string | null;
   /** This first drink came through an invite link and counted for the guide. */
@@ -817,6 +826,67 @@ export function hallowProgress(days: string[], today: string): number {
 
 export function isHallowSeason(now = new Date()): boolean {
   return now.getUTCMonth() === 9;
+}
+
+/**
+ * Winter Lights runs 1 to 25 December 2026, UTC. Three paid days in a row
+ * inside that window earn the candle. The meter counts first-drink invites
+ * in the same window and sizes the final refill, which the keeper pays by hand.
+ */
+export const XMAS_STREAK_DAYS = 3;
+export const XMAS_FIRST_DAY = "2026-12-01";
+export const XMAS_LAST_DAY = "2026-12-25";
+export const XMAS_FROM = new Date("2026-12-01T00:00:00.000Z");
+export const XMAS_UNTIL = new Date("2026-12-26T00:00:00.000Z");
+/** Final refill: this much for sure, plus one stage per XMAS_STAGE_REFERRALS invites, up to the max. */
+export const XMAS_FLOOR_SATS = 10_000;
+export const XMAS_STAGE_REFERRALS = 10;
+export const XMAS_STAGE_SATS = 3_000;
+export const XMAS_MAX_SATS = 70_000;
+
+export function isXmasDay(day: string): boolean {
+  return day >= XMAS_FIRST_DAY && day <= XMAS_LAST_DAY;
+}
+
+/** Longest run of paid days inside the event. Days outside it do not count. */
+export function xmasPaidRun(days: string[]): number {
+  return paidRun(days.filter(isXmasDay));
+}
+
+/** Event days in a row ending today or yesterday. A broken run is zero. */
+export function xmasProgress(days: string[], today: string): number {
+  const inEvent = [...new Set(days.filter(isXmasDay))].sort();
+  if (inEvent.length === 0) return 0;
+  const last = inEvent[inEvent.length - 1] ?? "";
+  if (last !== today && utcShift(last, 1) !== today) return 0;
+  let run = 1;
+  for (let i = inEvent.length - 1; i > 0; i -= 1) {
+    if (utcShift(inEvent[i - 1] ?? "", 1) === inEvent[i]) run += 1;
+    else break;
+  }
+  return run;
+}
+
+export function isXmasSeason(now = new Date()): boolean {
+  return isXmasDay(utcDateString(now));
+}
+
+/** Whole UTC nights left until the event closes at 26 December 00:00 UTC. */
+export function xmasNightsLeft(now = new Date()): number {
+  return Math.max(0, Math.ceil((XMAS_UNTIL.getTime() - now.getTime()) / 86_400_000));
+}
+
+/** Sats in the final refill for this many invites. Never below the floor, never above the max. */
+export function xmasRefillSats(referrals: number): number {
+  const stages = Math.floor(Math.max(0, referrals) / XMAS_STAGE_REFERRALS);
+  return Math.min(XMAS_MAX_SATS, XMAS_FLOOR_SATS + stages * XMAS_STAGE_SATS);
+}
+
+/** Invites still needed for the next stage, or null once the refill is at its max. */
+export function xmasInvitesToNext(referrals: number): number | null {
+  if (xmasRefillSats(referrals) >= XMAS_MAX_SATS) return null;
+  const into = Math.max(0, referrals) % XMAS_STAGE_REFERRALS;
+  return XMAS_STAGE_REFERRALS - into;
 }
 
 /** Whole UTC nights left until 1 November, including a partial night. */

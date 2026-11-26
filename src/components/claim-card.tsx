@@ -16,6 +16,7 @@ import {
   JackOLantern,
   Marks,
 } from "@/components/leaderboard";
+import { CandleIcon } from "@/components/candle-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { lookupDrinker } from "@/lib/faucet-api";
@@ -30,7 +31,9 @@ import {
   inviteUrl,
   isClaimableLightning,
   isHallowSeason,
+  isXmasSeason,
   nextGuideLevel,
+  XMAS_STREAK_DAYS,
   type ClaimOk,
 } from "@/lib/faucet";
 import { addressFieldInvalid } from "@/lib/copy";
@@ -350,6 +353,7 @@ export function ClaimCard({
                 pour500={drinker.pour500}
                 pour1000={drinker.pour1000}
                 hallow={drinker.hallow}
+                xmas={drinker.xmas}
                 referrals={drinker.referrals}
               />
               {isHallowSeason() &&
@@ -359,6 +363,15 @@ export function ClaimCard({
                 <span className="inline-flex items-center gap-1 text-xs text-gold">
                   <JackOLantern className="size-3.5" />
                   {t("hallow.progress", { n: drinker.hallowDays })}
+                </span>
+              ) : null}
+              {isXmasSeason() &&
+              !drinker.xmas &&
+              drinker.xmasDays > 0 &&
+              drinker.xmasDays < XMAS_STREAK_DAYS ? (
+                <span className="inline-flex items-center gap-1 text-xs text-gold">
+                  <CandleIcon className="size-3.5" />
+                  {t("xmas.progress", { n: drinker.xmasDays })}
                 </span>
               ) : null}
             </p>
@@ -416,7 +429,7 @@ export function ClaimCard({
                 <LoaderCircle
                   className={cn(
                     "size-4 animate-spin",
-                    isHallowSeason() ? "text-ember" : "text-gold",
+                    isXmasSeason() ? "text-ice" : isHallowSeason() ? "text-ember" : "text-gold",
                   )}
                   aria-hidden
                 />
@@ -440,7 +453,7 @@ export function ClaimCard({
               <span
                 className={cn(
                   "absolute inset-y-0 left-0 transition-[width] duration-150 ease-out",
-                  isHallowSeason() ? "bg-ember" : "bg-gold",
+                  isXmasSeason() ? "bg-ice" : isHallowSeason() ? "bg-ember" : "bg-gold",
                 )}
                 style={{
                   width: `${Math.round(
@@ -543,6 +556,7 @@ export function PourSuccess({
             pour500={pour.pour500}
             pour1000={pour.pour1000}
             hallow={pour.hallow}
+            xmas={pour.xmas}
             referrals={pour.referrals}
           />
           {pour.payoutBoostPct > 0 ? (
@@ -585,6 +599,12 @@ export function PourSuccess({
           <p className="mt-2 flex items-center gap-1.5 text-sm text-gold">
             <JackOLantern className="size-4" />
             {t("pour.hallow")}
+          </p>
+        ) : null}
+        {pour.earnedXmas ? (
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-gold">
+            <CandleIcon className="size-4" />
+            {t("pour.xmas")}
           </p>
         ) : null}
         {pour.invited ? (

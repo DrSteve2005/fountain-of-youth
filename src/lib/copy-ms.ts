@@ -278,8 +278,8 @@ export const ms: Dict = {
   "faq.guide.title": "Apa itu lencana Pemandu?",
   "faq.guide.body":
     "Selepas minuman berbayar pertama anda, kad minuman menunjukkan pautan jemputan anda. Apabila seseorang mengambil minuman berbayar pertamanya melalui pautan itu, dia dikira untuk anda. Peninjau pada 1, Pemandu pada 3, Perintis pada 10, Kartografer pada 21. Ia lencana sahaja: tiada sats tambahan, tiada peluang lebih baik. Setiap orang dikira sekali, untuk seorang pemandu. Alamat yang sudah minum tidak dikira, begitu juga minuman daripada sambungan yang pernah anda gunakan untuk minum sendiri. Pautan membawa kod rawak, bukan alamat anda. Tiada akaun.",
-  "faq.kicker": "v1.5.3",
-  "faq.updated": "21 November 2026",
+  "faq.kicker": "v1.6.0",
+  "faq.updated": "26 November 2026",
   "faq.maint.title": "Mata air menyatakan penyelenggaraan",
   "faq.maint.body":
     "Penjaga sedang memindahkan dompet Lightning. Minum dan isi dijeda. Rentetan dibekukan pada hari-hari itu — anda tidak akan kehilangan sehari kerana perigi ditutup.",
@@ -343,4 +343,19 @@ export const ms: Dict = {
   "error.slow": "Perlahan sebentar, kemudian cuba lagi.",
   "error.maint":
     "Mata air dalam penyelenggaraan. Rentetan dibekukan. Kembali dalam sehari dua.",
+  "xmas.kicker": "Lampu musim sejuk",
+  "xmas.body":
+    "Minum tiga hari berturut-turut untuk menyalakan lencana lilin. Mengisi tidak dikira, dan tuangan kekal sama.",
+  "xmas.mark": "Lencana lilin",
+  "xmas.progress": "Lilin {n} daripada 3",
+  "xmas.nights": "{n} malam lagi",
+  "xmas.nightsOne": "Malam terakhir",
+  "xmas.meterLine": "{n} dijemput · {sats} sats dalam pengisian",
+  "xmas.meterNext": "Seterusnya: {sats} sats dengan {left} lagi dijemput",
+  "xmas.meterMax": "Pengisian berada di tahap maksimum.",
+  "xmas.meterAria": "Saiz pengisian akhir",
+  "pour.xmas": "Lencana lilin diperoleh. Tiga minuman, bukan pengisian. Ia kekal di sebelah nama anda.",
+  "faq.xmas.title": "Apa itu Lampu musim sejuk?",
+  "faq.xmas.body":
+    "Dari 1 hingga 25 Disember, tiga minuman pada hari UTC berturut-turut menyalakan lencana lilin di sebelah nama itu. Minuman yang sudah diambil dikira untuk tiga itu. Satu minuman tidak cukup. Mengisi mata air tidak mendapatkannya, dan ia tidak menaikkan teguk atau peluang jackpot. Jemputan juga membesarkan pengisian akhir. Setiap minuman berbayar pertama melalui pautan jemputan menambah pada meter bersama. Pada 25 Disember penjaga mengisi mata air dengan 10,000 sats, ditambah 3,000 lagi bagi setiap sepuluh orang yang dijemput, sehingga 70,000. Meter ialah kiraan awam, bukan bayaran. Lilin kekal selepas acara.",
 };

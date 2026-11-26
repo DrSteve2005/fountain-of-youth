@@ -42,6 +42,12 @@ import {
   HALLOW_STREAK_DAYS,
   hallowPaidRun,
   hallowProgress,
+  isXmasSeason,
+  XMAS_FROM,
+  XMAS_UNTIL,
+  XMAS_STREAK_DAYS,
+  xmasPaidRun,
+  xmasProgress,
   applyStreakDrink,
   shouldBackfillGrace,
   maskDestination,
@@ -116,6 +122,7 @@ type DrinkerRow = {
   is_pour_1000: boolean;
   grace_token?: boolean;
   is_hallow?: boolean;
+  is_xmas?: boolean;
   last_paid_at?: Date | string | null;
   referral_count?: number | null;
   ref_code?: string | null;
@@ -290,6 +297,7 @@ function toLeader(row: DrinkerRow, freeze?: StreakFreeze | null): LeaderEntry {
     pour1000: Boolean(row.is_pour_1000),
     graceToken: hasGrace && streak > 0,
     hallow: Boolean(row.is_hallow),
+    xmas: Boolean(row.is_xmas),
     referrals: Number(row.referral_count ?? 0),
   };
 }
@@ -410,6 +418,26 @@ async function ensureHallowSchema(sql: Sql): Promise<void> {
   await stripHallowWithoutPaidRun(sql);
 }
 
+/**
+ * Winter Lights candle. One boolean on the drinker, added once per server
+ * instance. A failed pass clears the slot so the next call retries.
+ */
+const xmasSchemaRef = globalThis as typeof globalThis & {
+  __fountainXmasSchema__?: Promise<void>;
+};
+
+async function ensureXmasSchema(sql: Sql): Promise<void> {
+  xmasSchemaRef.__fountainXmasSchema__ ??= (async () => {
+    await sql.query(
+      "alter table faucet_drinkers add column if not exists is_xmas boolean not null default false",
+    );
+  })().catch((err) => {
+    xmasSchemaRef.__fountainXmasSchema__ = undefined;
+    throw err;
+  });
+  return xmasSchemaRef.__fountainXmasSchema__;
+}
+
 function utcClaimDay(value: Date | string): string {
   const date = value instanceof Date ? value : new Date(value);
   return date.toISOString().slice(0, 10);
@@ -499,6 +527,30 @@ async function octoberClaimDays(sql: Sql, destinationHash: string): Promise<stri
 }
 
 /** A held day is not a drink. Take the lantern back unless three October pours were paid. */
+/** Paid days inside the Winter Lights window. Days outside it never count. */
+async function xmasClaimDays(sql: Sql, destinationHash: string): Promise<string[]> {
+  const rows = await sql<{ created_at: Date | string }>`
+    select created_at
+    from faucet_claims
+    where paid = true
+      and destination_hash = ${destinationHash}
+      and created_at >= ${XMAS_FROM}
+      and created_at < ${XMAS_UNTIL}
+  `;
+  return rows.map((row) => utcClaimDay(row.created_at));
+}
+
+/** First-drink invites that counted inside the event. Sizes the final refill. */
+async function xmasReferralCount(sql: Sql): Promise<number> {
+  const row = (
+    await sql<{ n: number }>`
+      select count(*)::int as n from faucet_referrals
+      where created_at >= ${XMAS_FROM} and created_at < ${XMAS_UNTIL}
+    `
+  )[0];
+  return Number(row?.n ?? 0);
+}
+
 async function stripHallowWithoutPaidRun(sql: Sql): Promise<void> {
   await sql.query(
     "alter table faucet_pool add column if not exists hallow_paid_only boolean not null default false",
@@ -1480,7 +1532,7 @@ async function readBoards(
 }> {
   const bySats = await sql<DrinkerRow>`
     select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
-           is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
+           is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow, is_xmas,
            (select max(c.created_at) from faucet_claims c
              where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at,
            (select count(*)::int from faucet_referrals r
@@ -1492,7 +1544,7 @@ async function readBoards(
   `;
   const byStreak = await sql<DrinkerRow>`
     select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
-           is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
+           is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow, is_xmas,
            (select max(c.created_at) from faucet_claims c
              where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at,
            (select count(*)::int from faucet_referrals r
@@ -1506,7 +1558,7 @@ async function readBoards(
   const byGuides = await sql<DrinkerRow>`
     select d.destination_mask, d.username, d.total_sats, d.drink_count, d.current_streak,
            d.last_drink_utc, d.is_legacy, d.legacy_rank, d.is_pour_500, d.is_pour_1000,
-           d.grace_token, d.is_hallow,
+           d.grace_token, d.is_hallow, d.is_xmas,
            (select max(c.created_at) from faucet_claims c
              where c.paid = true and c.destination_hash = d.destination_hash) as last_paid_at,
            r.n as referral_count
@@ -1541,6 +1593,7 @@ async function readPool(): Promise<FaucetState> {
   await assignPour1000(sql);
   await ensureGraceSchema(sql);
   await ensureHallowSchema(sql);
+  await ensureXmasSchema(sql);
   await ensureTipAddressSchema(sql);
   await ensurePourTierSchema(sql);
   await ensureDonorSchema(sql);
@@ -1655,6 +1708,8 @@ async function readPool(): Promise<FaucetState> {
     ),
     maintenance,
     hallowOpen: isHallowSeason(),
+    xmasOpen: isXmasSeason(),
+    xmasReferrals: isXmasSeason() ? await xmasReferralCount(sql) : 0,
   };
 }
 
@@ -1747,6 +1802,8 @@ export const lookupDrinker = createServerFn({ method: "POST" })
       graceToken: false,
       hallow: false,
       hallowDays: 0,
+      xmas: false,
+      xmasDays: 0,
       referrals: 0,
       refCode: null,
     };
@@ -1758,6 +1815,7 @@ export const lookupDrinker = createServerFn({ method: "POST" })
     await ensurePour1000Schema(sql);
     await ensureGraceSchema(sql);
     await ensureHallowSchema(sql);
+    await ensureXmasSchema(sql);
     await ensureUsernameSchema(sql);
     await ensureReferralSchema(sql);
     const lightning = await import("@/lib/lightning.server");
@@ -1766,7 +1824,7 @@ export const lookupDrinker = createServerFn({ method: "POST" })
     const row = (
       await sql<DrinkerRow>`
       select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
-             is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
+             is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow, is_xmas,
              (select max(c.created_at) from faucet_claims c
                where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at,
              (select count(*)::int from faucet_referrals r
@@ -1803,6 +1861,10 @@ export const lookupDrinker = createServerFn({ method: "POST" })
       graceToken: Boolean(row.grace_token) && streak > 0,
       hallow: Boolean(row.is_hallow),
       hallowDays: hallowProgress(octoberDays, utcDateString()),
+      xmas: Boolean(row.is_xmas),
+      xmasDays: isXmasSeason()
+        ? xmasProgress(await xmasClaimDays(sql, destHash), utcDateString())
+        : 0,
       referrals: Number(row.referral_count ?? 0),
       refCode: await ensureRefCode(sql, destHash),
     };
@@ -1981,6 +2043,7 @@ export const claimSats = createServerFn({ method: "POST" })
     await ensurePour1000Schema(sql);
     await ensureGraceSchema(sql);
     await ensureHallowSchema(sql);
+    await ensureXmasSchema(sql);
     await ensurePourTierSchema(sql);
     await ensureUsernameSchema(sql);
     await ensureReferralSchema(sql);
@@ -2150,7 +2213,7 @@ export const claimSats = createServerFn({ method: "POST" })
     const priorRow = (
       await sql<DrinkerRow>`
       select destination_mask, username, total_sats, drink_count, current_streak, last_drink_utc,
-             is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow,
+             is_legacy, legacy_rank, is_pour_500, is_pour_1000, grace_token, is_hallow, is_xmas,
              (select max(c.created_at) from faucet_claims c
                where c.paid = true and c.destination_hash = faucet_drinkers.destination_hash) as last_paid_at
       from faucet_drinkers
@@ -2365,6 +2428,26 @@ export const claimSats = createServerFn({ method: "POST" })
         earnedHallow = true;
       }
     }
+    // Winter Lights: three paid days in a row inside 1 to 25 December. The
+    // pour is already paid, so a failure here must not turn it into an error.
+    let xmas = Boolean(priorRow?.is_xmas);
+    let earnedXmas = false;
+    try {
+      if (isXmasSeason() && !xmas) {
+        const days = await xmasClaimDays(sql, destHash);
+        if (xmasPaidRun(days) >= XMAS_STREAK_DAYS) {
+          await sql`
+            update faucet_drinkers
+            set is_xmas = true
+            where destination_hash = ${destHash}
+          `;
+          xmas = true;
+          earnedXmas = true;
+        }
+      }
+    } catch {
+      /* badge bookkeeping only */
+    }
     // Invite credit only on the very first paid drink. The pour is already
     // paid, so a failure here must not turn it into an error.
     let invited = false;
@@ -2405,6 +2488,8 @@ export const claimSats = createServerFn({ method: "POST" })
       earnedGrace: rolledStreak.earnedGrace,
       hallow,
       earnedHallow,
+      xmas,
+      earnedXmas,
       referrals,
       refCode,
       invited,

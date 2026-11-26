@@ -44,6 +44,11 @@ import {
   getOrCreateClaimToken,
   hallowNightsLeft,
   isHallowSeason,
+  isXmasSeason,
+  xmasNightsLeft,
+  xmasRefillSats,
+  xmasInvitesToNext,
+  XMAS_MAX_SATS,
   refillMoment,
   formatRefillWait,
   donorLore,
@@ -55,6 +60,7 @@ import {
 } from "@/lib/faucet";
 import { solvePow, powEstimatedAttempts, PowCancelled } from "@/lib/pow-client";
 import { useI18n } from "@/lib/i18n";
+import { CandleIcon } from "@/components/candle-icon";
 
 export const Route = createFileRoute("/")({
   loader: () => getFaucetState(),
@@ -638,6 +644,61 @@ function Home() {
               </p>
             </div>
           ) : null}
+          {isXmasSeason() ? (
+            <div className="mx-auto mt-5 max-w-md rounded-xl bg-surface px-4 py-4 text-center shadow-[var(--shadow-border)]">
+              <p className="font-mono text-[11px] tracking-[0.18em] text-gold uppercase">
+                {xmasNightsLeft() <= 1
+                  ? t("xmas.nightsOne")
+                  : t("xmas.nights", { n: xmasNightsLeft() })}
+              </p>
+              <p className="mt-2 flex items-center justify-center gap-2 font-display text-lg font-semibold tracking-tight text-gold">
+                <CandleIcon className="size-6" />
+                {t("xmas.kicker")}
+              </p>
+              <p className="mt-1 text-sm leading-normal text-muted">
+                {t("xmas.body")}
+              </p>
+              {(() => {
+                const invites = state?.xmasReferrals ?? 0;
+                const refill = xmasRefillSats(invites);
+                const toNext = xmasInvitesToNext(invites);
+                return (
+                  <div className="mt-3 text-left">
+                    <div className="flex items-baseline justify-between gap-2 font-mono text-xs tabular-nums text-muted">
+                      <span>
+                        {t("xmas.meterLine", {
+                          n: invites,
+                          sats: formatSats(refill, locale),
+                        })}
+                      </span>
+                      <span>{formatSats(XMAS_MAX_SATS, locale)}</span>
+                    </div>
+                    <div
+                      className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2"
+                      role="progressbar"
+                      aria-label={t("xmas.meterAria")}
+                      aria-valuemin={0}
+                      aria-valuemax={XMAS_MAX_SATS}
+                      aria-valuenow={refill}
+                    >
+                      <div
+                        className="h-full rounded-full bg-gold transition-[width] duration-500"
+                        style={{ width: `${Math.round((refill / XMAS_MAX_SATS) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-subtle">
+                      {toNext === null
+                        ? t("xmas.meterMax")
+                        : t("xmas.meterNext", {
+                            left: toNext,
+                            sats: formatSats(xmasRefillSats(invites + toNext), locale),
+                          })}
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : null}
         </div>
 
         <div className="relative mt-3 sm:mt-8">
@@ -804,7 +865,7 @@ function Home() {
             to="/changelog"
             className="text-gold underline-offset-2 hover:underline"
           >
-            v1.5.3
+            v1.6.0
           </Link>
           . {t("footer.blurb")}{" "}
           <button

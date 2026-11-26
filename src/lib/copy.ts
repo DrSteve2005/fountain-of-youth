@@ -280,8 +280,8 @@ const en: Dict = {
   "faq.guide.title": "What is the Guide badge?",
   "faq.guide.body":
     "After your first paid drink, the drink card shows your invite link. When someone takes their first paid drink through it, they count for you. Scout at 1, Guide at 3, Pathfinder at 10, Cartographer at 21. It is a badge only: no extra sats, no better odds. Each person counts once, for one guide. An address that already drank does not count, and neither does a drink from a connection you have drunk from yourself. The link carries a random code, not your address. No account.",
-  "faq.kicker": "v1.5.3",
-  "faq.updated": "21 November 2026",
+  "faq.kicker": "v1.6.0",
+  "faq.updated": "26 November 2026",
   "faq.maint.title": "The spring says maintenance",
   "faq.maint.body":
     "The keeper is moving the Lightning wallet. Drink and fill pause. Streaks freeze for those days — you will not lose a day because the well was closed.",
@@ -345,6 +345,21 @@ const en: Dict = {
   "error.slow": "Slow down a moment, then try again.",
   "error.maint":
     "The spring is under maintenance. Streaks are frozen. Come back in a day or two.",
+  "xmas.kicker": "Winter Lights",
+  "xmas.body":
+    "Drink three days in a row to light a candle badge. A fill does not count, and the pour stays the same.",
+  "xmas.mark": "Candle badge",
+  "xmas.progress": "Candle {n} of 3",
+  "xmas.nights": "{n} nights left",
+  "xmas.nightsOne": "The last night",
+  "xmas.meterLine": "{n} invited · {sats} sats in the refill",
+  "xmas.meterNext": "Next: {sats} sats at {left} more invited",
+  "xmas.meterMax": "The refill is at its maximum.",
+  "xmas.meterAria": "Final refill size",
+  "pour.xmas": "Candle badge earned. Three drinks, not a fill. It stays beside your name.",
+  "faq.xmas.title": "What is Winter Lights?",
+  "faq.xmas.body":
+    "From 1 to 25 December, three drinks on consecutive UTC days light a candle badge beside that name. A drink already taken counts toward the three. One drink is not enough. Filling the spring does not earn it, and it does not raise the sip or the jackpot odds. Invites also grow the final refill. Every first paid drink through an invite link adds to a shared meter. On 25 December the keeper refills the spring with 10,000 sats, plus 3,000 more for every ten people invited, up to 70,000. The meter is a public count, not a payout. The candle stays after the event.",
 };
 
 const es: Dict = {
@@ -624,8 +639,8 @@ const es: Dict = {
   "faq.guide.title": "¿Qué es la insignia de Guía?",
   "faq.guide.body":
     "Después de tu primer trago pagado, la tarjeta de beber muestra tu enlace de invitación. Cuando alguien bebe su primer trago pagado con él, cuenta para ti. Explorador con 1, Guía con 3, Pionero con 10, Cartógrafo con 21. Es solo una insignia: sin sats extra, sin mejor suerte. Cada persona cuenta una vez, para un solo guía. Una dirección que ya bebió no cuenta, ni un trago desde una conexión desde la que tú mismo bebiste. El enlace lleva un código al azar, no tu dirección. Sin cuenta.",
-  "faq.kicker": "v1.5.3",
-  "faq.updated": "21 de noviembre de 2026",
+  "faq.kicker": "v1.6.0",
+  "faq.updated": "26 de noviembre de 2026",
   "faq.maint.title": "El manantial dice mantenimiento",
   "faq.maint.body":
     "El guardián está moviendo el monedero Lightning. Beber y llenar pausan. Las rachas se congelan esos días — no pierdes un día porque el pozo estaba cerrado.",
@@ -689,6 +704,21 @@ const es: Dict = {
   "error.slow": "Ve más despacio un momento, luego prueba.",
   "error.maint":
     "El manantial está en mantenimiento. Las rachas están congeladas. Vuelve en un día o dos.",
+  "xmas.kicker": "Luces de invierno",
+  "xmas.body":
+    "Bebe tres días seguidos para encender una insignia de vela. Rellenar no cuenta, y el trago sigue igual.",
+  "xmas.mark": "Insignia de vela",
+  "xmas.progress": "Vela {n} de 3",
+  "xmas.nights": "Quedan {n} noches",
+  "xmas.nightsOne": "La última noche",
+  "xmas.meterLine": "{n} invitados · {sats} sats en el relleno",
+  "xmas.meterNext": "Siguiente: {sats} sats con {left} invitados más",
+  "xmas.meterMax": "El relleno está en su máximo.",
+  "xmas.meterAria": "Tamaño del relleno final",
+  "pour.xmas": "Insignia de vela ganada. Tres tragos, no un relleno. Se queda junto a tu nombre.",
+  "faq.xmas.title": "¿Qué son las Luces de invierno?",
+  "faq.xmas.body":
+    "Del 1 al 25 de diciembre, tres tragos en días UTC consecutivos encienden una insignia de vela junto a ese nombre. Un trago ya tomado cuenta para los tres. Uno no basta. Rellenar el manantial no la da, ni sube el sorbo ni las probabilidades del jackpot. Las invitaciones también hacen crecer el relleno final. Cada primer trago pagado a través de un enlace de invitación suma a un contador compartido. El 25 de diciembre el guardián rellena el manantial con 10.000 sats, más 3.000 por cada diez personas invitadas, hasta 70.000. El contador es un recuento público, no un pago. La vela se queda después del evento.",
 };
 
 const TABLES: Record<Lang, Dict> = { en, es, ms };
