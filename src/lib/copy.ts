@@ -281,7 +281,7 @@ const en: Dict = {
   "faq.guide.body":
     "After your first paid drink, the drink card shows your invite link. When someone takes their first paid drink through it, they count for you. Scout at 1, Guide at 3, Pathfinder at 10, Cartographer at 21. It is a badge only: no extra sats, no better odds. Each person counts once, for one guide. An address that already drank does not count, and neither does a drink from a connection you have drunk from yourself. The link carries a random code, not your address. No account.",
   "faq.kicker": "v1.6.0",
-  "faq.updated": "1 December 2026",
+  "faq.updated": "26 November 2026",
   "faq.maint.title": "The spring says maintenance",
   "faq.maint.body":
     "The keeper is moving the Lightning wallet. Drink and fill pause. Streaks freeze for those days — you will not lose a day because the well was closed.",
@@ -640,7 +640,7 @@ const es: Dict = {
   "faq.guide.body":
     "Después de tu primer trago pagado, la tarjeta de beber muestra tu enlace de invitación. Cuando alguien bebe su primer trago pagado con él, cuenta para ti. Explorador con 1, Guía con 3, Pionero con 10, Cartógrafo con 21. Es solo una insignia: sin sats extra, sin mejor suerte. Cada persona cuenta una vez, para un solo guía. Una dirección que ya bebió no cuenta, ni un trago desde una conexión desde la que tú mismo bebiste. El enlace lleva un código al azar, no tu dirección. Sin cuenta.",
   "faq.kicker": "v1.6.0",
-  "faq.updated": "1 de diciembre de 2026",
+  "faq.updated": "26 de noviembre de 2026",
   "faq.maint.title": "El manantial dice mantenimiento",
   "faq.maint.body":
     "El guardián está moviendo el monedero Lightning. Beber y llenar pausan. Las rachas se congelan esos días — no pierdes un día porque el pozo estaba cerrado.",

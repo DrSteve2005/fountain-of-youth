@@ -279,7 +279,7 @@ export const ms: Dict = {
   "faq.guide.body":
     "Selepas minuman berbayar pertama anda, kad minuman menunjukkan pautan jemputan anda. Apabila seseorang mengambil minuman berbayar pertamanya melalui pautan itu, dia dikira untuk anda. Peninjau pada 1, Pemandu pada 3, Perintis pada 10, Kartografer pada 21. Ia lencana sahaja: tiada sats tambahan, tiada peluang lebih baik. Setiap orang dikira sekali, untuk seorang pemandu. Alamat yang sudah minum tidak dikira, begitu juga minuman daripada sambungan yang pernah anda gunakan untuk minum sendiri. Pautan membawa kod rawak, bukan alamat anda. Tiada akaun.",
   "faq.kicker": "v1.6.0",
-  "faq.updated": "1 December 2026",
+  "faq.updated": "26 November 2026",
   "faq.maint.title": "Mata air menyatakan penyelenggaraan",
   "faq.maint.body":
     "Penjaga sedang memindahkan dompet Lightning. Minum dan isi dijeda. Rentetan dibekukan pada hari-hari itu — anda tidak akan kehilangan sehari kerana perigi ditutup.",

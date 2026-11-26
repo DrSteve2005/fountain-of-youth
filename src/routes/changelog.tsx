@@ -10,13 +10,13 @@ export const Route = createFileRoute("/changelog")({
 
 function ChangelogPage() {
   return (
-    <LegalPage kicker="the spring" title="Changelog" updated="1 December 2026">
+    <LegalPage kicker="the spring" title="Changelog" updated="26 November 2026">
       <p>
         What changed in public. No commit noise. The fountain is still a
         fountain.
       </p>
 
-      <LegalSection title="1.6.0 — 1 December 2026">
+      <LegalSection title="1.6.0 — 26 November 2026">
         <ul className="list-disc space-y-1 pl-5">
           <li>
             Malay. The switch in the header now says EN, ES and MS, and a
