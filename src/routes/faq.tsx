@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LegalPage, LegalSection } from "@/components/legal-page";
-import { isHallowSeason } from "@/lib/faucet";
+import { isHallowSeason, isXmasSeason } from "@/lib/faucet";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/faq")({
@@ -55,6 +55,12 @@ function FaqPage() {
       {isHallowSeason() ? (
         <LegalSection title={t("faq.hallow.title")}>
           <p>{t("faq.hallow.body")}</p>
+        </LegalSection>
+      ) : null}
+
+      {isXmasSeason() ? (
+        <LegalSection title={t("faq.xmas.title")}>
+          <p>{t("faq.xmas.body")}</p>
         </LegalSection>
       ) : null}
 

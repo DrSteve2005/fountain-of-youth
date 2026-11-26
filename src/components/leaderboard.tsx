@@ -11,6 +11,7 @@ import {
   Shrimp,
   Signpost,
 } from "lucide-react";
+import { CandleIcon } from "@/components/candle-icon";
 import { Donorboard } from "@/components/donorboard";
 import {
   boardLabel,
@@ -111,6 +112,13 @@ export function JackOLantern({
   );
 }
 
+export function XmasMark() {
+  const { t } = useI18n();
+  return (
+    <CandleIcon className="size-3.5 shrink-0 text-gold" label={t("xmas.mark")} />
+  );
+}
+
 export function HallowMark() {
   const { t } = useI18n();
   return (
@@ -163,6 +171,7 @@ export function Marks({
   pour500,
   pour1000,
   hallow,
+  xmas,
   referrals = 0,
 }: {
   legacy?: boolean;
@@ -170,11 +179,12 @@ export function Marks({
   pour500?: boolean;
   pour1000?: boolean;
   hallow?: boolean;
+  xmas?: boolean;
   referrals?: number;
 }) {
   const { t } = useI18n();
   const guide = guideTier(referrals) !== null;
-  if (!legacy && !pour500 && !pour1000 && !hallow && !guide) return null;
+  if (!legacy && !pour500 && !pour1000 && !hallow && !xmas && !guide) return null;
   const legacyLabel = legacyRank
     ? `${t("claim.legacy")} #${legacyRank}`
     : t("claim.legacy");
@@ -196,6 +206,7 @@ export function Marks({
         </span>
       ) : null}
       {hallow ? <HallowMark /> : null}
+      {xmas ? <XmasMark /> : null}
       {guide ? <GuideMark referrals={referrals} /> : null}
     </span>
   );
@@ -344,6 +355,7 @@ export function Leaderboard({
                     pour500={row.pour500}
                     pour1000={row.pour1000}
                     hallow={row.hallow}
+                    xmas={row.xmas}
                     referrals={tab === "guides" ? 0 : row.referrals}
                   />
                 </p>

@@ -10,11 +10,34 @@ export const Route = createFileRoute("/changelog")({
 
 function ChangelogPage() {
   return (
-    <LegalPage kicker="the spring" title="Changelog" updated="21 November 2026">
+    <LegalPage kicker="the spring" title="Changelog" updated="1 December 2026">
       <p>
         What changed in public. No commit noise. The fountain is still a
         fountain.
       </p>
+
+      <LegalSection title="1.6.0 — 1 December 2026">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Malay. The switch in the header now says EN, ES and MS, and a
+            browser set to Malay opens in Malay.
+          </li>
+          <li>
+            Winter Lights, 1 to 25 December. Drink three days in a row to
+            light a candle badge beside your name. A fill does not count, and
+            the pour and the odds stay the same.
+          </li>
+          <li>
+            Invites grow the final refill. Every first paid drink through an
+            invite link adds to a shared meter on the home page. On 25
+            December the keeper refills the spring, up to 70,000 sats.
+          </li>
+          <li>
+            Shared links now show a description when you paste them into a chat
+            or a post.
+          </li>
+        </ul>
+      </LegalSection>
 
       <LegalSection title="1.5.3 — 21 November 2026">
         <ul className="list-disc space-y-1 pl-5">

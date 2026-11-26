@@ -11,13 +11,33 @@ when `DATABASE_URL` is set. Boot also runs idempotent schema guards
 (`ensureGraceSchema`, `ensureHallowSchema`, `ensureFillBlockSchema`) that add
 missing columns and run one-time backfills gated by flags on `faucet_pool`.
 
-## [Unreleased]
+## [1.6.0] - 2026-12-01
 
-Repo cleanup, plus Malay. No change to pours, limits, odds, the wallet or the database.
+Malay, the Winter Lights event, and the repo cleanup. No change to pours,
+limits, odds or the wallet. One new column on `faucet_drinkers` (`is_xmas`, default
+false).
 
 ### Added
 - Malay (`ms`). Strings live in `src/lib/copy-ms.ts`, the language switch shows
   EN / ES / MS, and a browser set to Malay is picked up automatically.
+- Winter Lights, 1 to 25 December 2026 (UTC). Window constants and helpers are
+  in `lib/faucet.ts` (`XMAS_FROM`, `XMAS_UNTIL`, `isXmasSeason`).
+  - Candle badge: three paid days in a row inside the window. `xmasPaidRun`
+    counts only event days; `claimSats` checks it after the payout inside a
+    `try`, like the Guide credit, so a bookkeeping failure never turns a paid
+    pour into an error. Fills do not count. No change to `rollPour`.
+  - Schema: `faucet_drinkers.is_xmas boolean not null default false`, added by
+    `ensureXmasSchema` once per server instance (no migration file).
+  - Meter: `xmasReferralCount` counts `faucet_referrals` rows created inside
+    the window. `xmasRefillSats` turns that into the final refill: 10,000 sats,
+    plus 3,000 for every 10 invites, capped at 70,000. Public count only. The
+    keeper pays the refill by hand. New fields `FaucetState.xmasOpen` /
+    `xmasReferrals`, `LeaderEntry.xmas`, `DrinkerPreview.xmas` / `xmasDays`,
+    `ClaimOk.xmas` / `earnedXmas`.
+  - UI: candle icon (`components/candle-icon.tsx`), an event card with the
+    meter on the home page, a FAQ section, and a light blue (`--color-ice`)
+    spinner and bar in the puzzle box while the event runs.
+  - Tests: `lib/faucet-xmas.test.ts`.
 
 ### Changed
 - Share and home-screen tags now come only from `src/routes/__root.tsx`. The
