@@ -13,7 +13,11 @@ missing columns and run one-time backfills gated by flags on `faucet_pool`.
 
 ## [Unreleased]
 
-Repo cleanup. No change to pours, limits, odds, the wallet or the database.
+Repo cleanup, plus Malay. No change to pours, limits, odds, the wallet or the database.
+
+### Added
+- Malay (`ms`). Strings live in `src/lib/copy-ms.ts`, the language switch shows
+  EN / ES / MS, and a browser set to Malay is picked up automatically.
 
 ### Changed
 - Share and home-screen tags now come only from `src/routes/__root.tsx`. The
