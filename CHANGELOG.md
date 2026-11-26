@@ -11,7 +11,7 @@ when `DATABASE_URL` is set. Boot also runs idempotent schema guards
 (`ensureGraceSchema`, `ensureHallowSchema`, `ensureFillBlockSchema`) that add
 missing columns and run one-time backfills gated by flags on `faucet_pool`.
 
-## [1.6.0] - 2026-12-01
+## [1.6.0] - 2026-11-26
 
 Malay, the Winter Lights event, and the repo cleanup. No change to pours,
 limits, odds or the wallet. One new column on `faucet_drinkers` (`is_xmas`, default
